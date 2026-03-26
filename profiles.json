@@ -1,0 +1,17 @@
+[
+  {
+    "id": 1774445108794,
+    "name": "IK 1",
+    "cfgName": "IK Test 1",
+    "cfgEmail": "iktest1@gmail.com",
+    "cfgRole": "ste",
+    "cfgPhone": "+971589346735",
+    "cfgLinkedin": "https://www.linkedin.com/in/imrankhan24/",
+    "cfgPortfolio": "",
+    "cfgGmailUser": "",
+    "cfgSenderName": "",
+    "customVars": [],
+    "subject": "Application for {{position}} — {{your_name}}",
+    "body": "Dear {{hr_name}},\n\nI hope this finds you well. I am writing to express my strong interest in joining {{company}} as a {{position}}.\n\nWith hands-on experience and a genuine passion for the field, I am confident I can contribute meaningfully to your team.\n\nPlease find my resume attached for your review. I would love the opportunity to discuss how my background aligns with your needs.\n\nThank you for your time and consideration.\n\nWarm regards,\n{{your_name}}\n{{your_email}}"
+  }
+]

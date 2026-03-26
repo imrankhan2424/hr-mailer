@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HR Mail Blaster</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  :root[data-theme="dark"] {
+    --bg: #0a0a0f; --surface: #111118; --surface2: #1a1a26; --surface3: #222234;
+    --border: #2a2a3d; --accent: #7c6af7; --accent2: #e85d75;
+    --text: #e8e6ff; --muted: #6b6890; --success: #3ecf8e;
+    --warn: #f5a623; --radius: 12px;
+    --shadow: 0 8px 32px rgba(0,0,0,0.5);
+    --grid-color: rgba(124,106,247,0.04);
+  }
+  :root[data-theme="light"] {
+    --bg: #f4f3ff; --surface: #ffffff; --surface2: #eeecff; --surface3: #e5e3f8;
+    --border: #d0cdf0; --accent: #5b4de0; --accent2: #d63756;
+    --text: #1a1730; --muted: #7a74a0; --success: #1fa86a;
+    --warn: #c27d0e; --radius: 12px;
+    --shadow: 0 8px 32px rgba(90,77,224,0.12);
+    --grid-color: rgba(91,77,224,0.04);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { transition: background 0.3s, color 0.3s; }
+  body { background: var(--bg); color: var(--text); font-family: 'Syne', sans-serif; min-height: 100vh; overflow-x: hidden; }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image: linear-gradient(var(--grid-color) 1px, transparent 1px), linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+    background-size: 40px 40px; pointer-events: none; z-index: 0;
+  }
+  .app { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 28px 20px 80px; }
+
+  /* ── HEADER ── */
+  header { display: flex; align-items: center; gap: 16px; margin-bottom: 32px; }
+  .logo { width: 44px; height: 44px; background: linear-gradient(135deg, var(--accent), var(--accent2)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; box-shadow: 0 0 24px rgba(124,106,247,0.35); }
+  h1 { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; line-height: 1; }
+  h1 span { color: var(--accent); }
+  .subtitle { font-size: 12px; color: var(--muted); font-family: 'DM Mono', monospace; margin-top: 4px; }
+  .header-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+  .theme-toggle { display: flex; align-items: center; gap: 6px; background: var(--surface); border: 1px solid var(--border); border-radius: 30px; padding: 4px; cursor: pointer; transition: all 0.2s; }
+  .theme-toggle-btn { width: 30px; height: 26px; border-radius: 24px; border: none; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; background: transparent; transition: background 0.2s; }
+  .theme-toggle-btn.active { background: var(--accent); }
+
+  /* ── STEPS ── */
+  .steps { display: flex; align-items: center; margin-bottom: 28px; overflow-x: auto; padding-bottom: 4px; }
+  .step { display: flex; align-items: center; gap: 7px; font-size: 11px; font-family: 'DM Mono', monospace; color: var(--muted); transition: color 0.3s; white-space: nowrap; cursor: pointer; user-select: none; }
+  .step.active { color: var(--accent); }
+  .step.done { color: var(--success); }
+  .step-num { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid currentColor; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; flex-shrink: 0; }
+  .step.active .step-num { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .step.done .step-num { background: var(--success); border-color: var(--success); color: #fff; }
+  .step-line { flex: 1; height: 1px; background: var(--border); margin: 0 8px; min-width: 16px; }
+
+  /* ── CARDS ── */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px; margin-bottom: 16px; transition: border-color 0.2s; }
+  .card:focus-within { border-color: rgba(124,106,247,0.35); }
+  .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .card-title { font-size: 12px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+
+  /* ── FORM ELEMENTS ── */
+  label { display: block; font-size: 11px; font-family: 'DM Mono', monospace; color: var(--muted); margin-bottom: 5px; letter-spacing: 0.3px; }
+  input[type="text"], input[type="email"], input[type="password"], textarea, select {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+    color: var(--text); font-family: 'DM Mono', monospace; font-size: 13px; padding: 9px 13px;
+    outline: none; transition: border-color 0.2s, box-shadow 0.2s; resize: vertical;
+  }
+  input:focus, textarea:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(124,106,247,0.12); }
+  textarea { min-height: 200px; }
+  .field { margin-bottom: 13px; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; margin-bottom: 13px; }
+  .field-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 13px; margin-bottom: 13px; }
+
+  /* ── BUTTONS ── */
+  .btn { display: inline-flex; align-items: center; gap: 7px; padding: 9px 18px; border-radius: 8px; font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; letter-spacing: 0.3px; }
+  .btn-primary { background: linear-gradient(135deg, var(--accent), #9b8cf9); color: #fff; box-shadow: 0 4px 16px rgba(124,106,247,0.3); }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(124,106,247,0.45); }
+  .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-success { background: linear-gradient(135deg, #2db76e, var(--success)); color: #fff; box-shadow: 0 4px 16px rgba(62,207,142,0.3); }
+  .btn-success:hover { transform: translateY(-1px); }
+  .btn-success:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .btn-danger { background: rgba(232,93,117,0.12); color: var(--accent2); border: 1px solid rgba(232,93,117,0.25); }
+  .btn-danger:hover { background: rgba(232,93,117,0.2); }
+  .btn-icon { background: none; border: none; color: var(--muted); cursor: pointer; padding: 5px; border-radius: 6px; transition: color 0.2s, background 0.2s; display: flex; }
+  .btn-icon:hover { color: var(--accent2); background: rgba(232,93,117,0.1); }
+  .btn-sm { padding: 6px 12px; font-size: 11px; }
+
+  /* ── BADGES ── */
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-family: 'DM Mono', monospace; }
+  .badge-purple { background: rgba(124,106,247,0.15); color: var(--accent); border: 1px solid rgba(124,106,247,0.25); }
+  .badge-green { background: rgba(62,207,142,0.12); color: var(--success); border: 1px solid rgba(62,207,142,0.25); }
+  .badge-red { background: rgba(232,93,117,0.12); color: var(--accent2); border: 1px solid rgba(232,93,117,0.25); }
+  .badge-warn { background: rgba(245,166,35,0.12); color: var(--warn); border: 1px solid rgba(245,166,35,0.25); }
+
+  /* ── INFO ROW ── */
+  .info-row { display: flex; align-items: flex-start; gap: 10px; padding: 11px 13px; background: rgba(124,106,247,0.06); border: 1px solid rgba(124,106,247,0.15); border-radius: 8px; font-size: 12px; font-family: 'DM Mono', monospace; color: var(--text); line-height: 1.6; margin-bottom: 13px; }
+  .info-row svg { flex-shrink: 0; margin-top: 1px; color: var(--accent); }
+
+  /* ── SETUP NOTICE ── */
+  .setup-notice { background: rgba(124,106,247,0.07); border: 1px solid rgba(124,106,247,0.2); border-radius: 10px; padding: 16px 18px; margin-bottom: 16px; }
+  .setup-notice-title { font-size: 12px; font-weight: 700; color: var(--accent); display: flex; align-items: center; gap: 8px; margin-bottom: 11px; }
+  .setup-steps-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .setup-steps-list li { display: flex; align-items: flex-start; gap: 10px; font-size: 12px; font-family: 'DM Mono', monospace; color: var(--text); line-height: 1.65; }
+  .setup-steps-list li .num { background: rgba(124,106,247,0.2); color: var(--accent); min-width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; margin-top: 2px; flex-shrink: 0; }
+
+  /* ── GMAIL CONFIG ── */
+  .gmail-config { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 18px; margin-bottom: 16px; }
+  .gmail-config-title { font-size: 12px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+
+  /* ── PROFILES ── */
+  .profiles-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .profile-chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-family: 'DM Mono', monospace; background: var(--surface2); border: 1px solid var(--border); color: var(--text); cursor: pointer; transition: all 0.2s; }
+  .profile-chip:hover { border-color: var(--accent); color: var(--accent); }
+  .profile-chip.active-profile { background: rgba(124,106,247,0.15); border-color: var(--accent); color: var(--accent); }
+  .profile-chip .del-profile { color: var(--muted); margin-left: 2px; font-size: 13px; line-height: 1; transition: color 0.15s; }
+  .profile-chip .del-profile:hover { color: var(--accent2); }
+
+  /* ── VAR ROWS ── */
+  .var-row { display: grid; grid-template-columns: 170px 1fr auto; gap: 10px; align-items: center; padding: 9px 11px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 7px; animation: slideIn 0.18s ease; }
+  .var-row input { background: transparent; border: none; border-bottom: 1px solid var(--border); border-radius: 0; padding: 4px 0; font-size: 12px; }
+  .var-row input:focus { border-bottom-color: var(--accent); box-shadow: none; }
+  .var-key-display { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--accent); background: rgba(124,106,247,0.1); border: 1px solid rgba(124,106,247,0.2); border-radius: 5px; padding: 4px 8px; white-space: nowrap; }
+  .var-chips-row { display: flex; flex-wrap: wrap; gap: 6px; }
+  .var-chip { font-size: 11px; font-family: 'DM Mono', monospace; background: var(--surface2); border: 1px solid var(--border); border-radius: 4px; padding: 3px 8px; color: var(--accent); cursor: pointer; transition: all 0.18s; }
+  .var-chip:hover { border-color: var(--accent); background: rgba(124,106,247,0.12); transform: translateY(-1px); }
+
+  /* ── HR ENTRIES ── */
+  .hr-entry { display: grid; grid-template-columns: 1fr 1.4fr 1fr auto; gap: 10px; align-items: center; padding: 10px 11px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 7px; animation: slideIn 0.18s ease; }
+  .hr-entry input { background: transparent; border: none; border-bottom: 1px solid var(--border); border-radius: 0; padding: 4px 0; font-size: 12px; }
+  .hr-entry input:focus { border-bottom-color: var(--accent); box-shadow: none; }
+
+  /* ── COMPOSE LAYOUT ── */
+  .compose-layout { display: grid; grid-template-columns: 1fr 240px; gap: 16px; align-items: start; }
+  .compose-main { display: flex; flex-direction: column; gap: 13px; }
+  .vars-sidebar { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; position: sticky; top: 20px; }
+  .vars-sidebar-title { font-size: 10px; font-weight: 700; letter-spacing: 0.7px; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+  .vars-sidebar .var-chip { display: block; margin-bottom: 5px; width: 100%; text-align: left; padding: 6px 10px; }
+
+  /* ── PREVIEW ── */
+  .preview-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; }
+  .preview-subject-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 7px; padding: 11px 14px; font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 10px; min-height: 40px; word-break: break-word; }
+  .preview-subject-label { font-size: 10px; font-family: 'DM Mono', monospace; color: var(--muted); letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 5px; }
+  #preview-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 14px; font-family: 'DM Mono', monospace; font-size: 12px; line-height: 1.8; color: var(--text); min-height: 110px; white-space: pre-wrap; word-break: break-word; }
+
+  /* ── SEND LOG ── */
+  #send-log { max-height: 300px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+  .log-item { display: flex; align-items: center; gap: 10px; padding: 10px 13px; border-radius: 8px; font-size: 12px; font-family: 'DM Mono', monospace; animation: slideIn 0.2s ease; }
+  .log-item.pending { background: rgba(245,166,35,0.08); border: 1px solid rgba(245,166,35,0.2); color: var(--warn); }
+  .log-item.success { background: rgba(62,207,142,0.08); border: 1px solid rgba(62,207,142,0.2); color: var(--success); }
+  .log-item.error { background: rgba(232,93,117,0.08); border: 1px solid rgba(232,93,117,0.2); color: var(--accent2); }
+  .log-name { flex: 1; }
+
+  #progress-wrap { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; margin-bottom: 13px; display: none; }
+  #progress-bar { height: 100%; background: linear-gradient(90deg, var(--accent), var(--success)); width: 0%; transition: width 0.4s ease; border-radius: 2px; }
+  .stats-row { display: flex; gap: 12px; margin-top: 16px; }
+  .stat-box { flex: 1; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; text-align: center; }
+  .stat-num { font-size: 22px; font-weight: 800; }
+  .stat-label { font-size: 11px; font-family: 'DM Mono', monospace; color: var(--muted); margin-top: 2px; }
+
+  /* ── BACKEND BANNER ── */
+  #backend-banner { display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 8px; font-size: 12px; font-family: 'DM Mono', monospace; margin-bottom: 16px; }
+  #backend-banner.ok { background: rgba(62,207,142,0.08); border: 1px solid rgba(62,207,142,0.2); color: var(--success); }
+  #backend-banner.err { background: rgba(232,93,117,0.08); border: 1px solid rgba(232,93,117,0.2); color: var(--accent2); }
+  #backend-banner.checking { background: rgba(245,166,35,0.08); border: 1px solid rgba(245,166,35,0.2); color: var(--warn); }
+
+  /* ── MODAL ── */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 900; display: flex; align-items: center; justify-content: center; animation: fadeIn 0.2s ease; }
+  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 26px; width: 90%; max-width: 400px; box-shadow: var(--shadow); animation: slideUp 0.25s ease; }
+  .modal-title { font-size: 15px; font-weight: 700; margin-bottom: 18px; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ── MISC ── */
+  .divider { height: 1px; background: var(--border); margin: 16px 0; }
+  .flex { display: flex; }
+  .gap-2 { gap: 8px; }
+  .mt-2 { margin-top: 8px; }
+  .mt-3 { margin-top: 12px; }
+  .hidden { display: none !important; }
+  .spinner { width: 13px; height: 13px; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes slideIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+
+  #toast { position: fixed; bottom: 24px; right: 24px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 18px; font-size: 13px; font-family: 'DM Mono', monospace; box-shadow: var(--shadow); transform: translateY(80px); opacity: 0; transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1); z-index: 999; max-width: 320px; }
+  #toast.show { transform: translateY(0); opacity: 1; }
+  select option { background: var(--surface2); }
+  code { color: var(--accent); font-family: 'DM Mono', monospace; font-size: 12px; }
+
+  /* ── RESUME ATTACHMENT ── */
+  .attachment-zone { border: 2px dashed var(--border); border-radius: 10px; padding: 18px; text-align: center; transition: all 0.2s; cursor: pointer; margin-top: 10px; }
+  .attachment-zone:hover { border-color: var(--accent); background: rgba(124,106,247,0.04); }
+  .attachment-zone.has-file { border-style: solid; border-color: var(--success); background: rgba(62,207,142,0.05); }
+  .attachment-info { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; font-size: 12px; font-family: 'DM Mono', monospace; margin-top: 8px; animation: slideIn 0.18s ease; }
+  .attachment-info .file-icon { font-size: 20px; flex-shrink: 0; }
+  .attachment-info .file-details { flex: 1; }
+  .attachment-info .file-name { color: var(--text); font-weight: 500; }
+  .attachment-info .file-size { color: var(--muted); font-size: 11px; }
+  .preview-attachment { margin-top: 12px; padding: 10px 14px; background: rgba(124,106,247,0.06); border: 1px solid rgba(124,106,247,0.15); border-radius: 8px; font-size: 12px; font-family: 'DM Mono', monospace; display: flex; align-items: center; gap: 8px; }
+
+  /* ── TEMPLATE MODAL ── */
+  .template-table { width: 100%; border-collapse: collapse; font-family: 'DM Mono', monospace; font-size: 12px; margin-top: 10px; }
+  .template-table th { background: rgba(124,106,247,0.15); color: var(--accent); padding: 8px 12px; text-align: left; border: 1px solid var(--border); font-weight: 700; letter-spacing: 0.3px; }
+  .template-table td { padding: 8px 12px; border: 1px solid var(--border); color: var(--text); }
+
+  @media (max-width: 700px) {
+    .field-row, .field-row-3 { grid-template-columns: 1fr; }
+    .hr-entry { grid-template-columns: 1fr 1fr; }
+    .compose-layout { grid-template-columns: 1fr; }
+    .vars-sidebar { position: static; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <div class="logo">✉</div>
+    <div>
+      <h1>HR <span>Mail</span> Blaster</h1>
+      <div class="subtitle">// bulk job applications · local backend mode</div>
+    </div>
+    <div class="header-actions">
+      <div class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light mode">
+        <button class="theme-toggle-btn" id="dark-btn">🌙</button>
+        <button class="theme-toggle-btn" id="light-btn">☀️</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Backend status banner -->
+  <div id="backend-banner" class="checking">
+    <div class="spinner"></div>
+    <span id="backend-msg">Checking backend connection…</span>
+    <button class="btn btn-secondary btn-sm" style="margin-left:auto" onclick="checkBackend()">Retry</button>
+  </div>
+
+  <div class="steps">
+    <div class="step active" id="step0-ind" onclick="goToStep(0)"><div class="step-num">1</div> Setup</div>
+    <div class="step-line"></div>
+    <div class="step" id="step1-ind" onclick="goToStep(1)"><div class="step-num">2</div> HR Contacts</div>
+    <div class="step-line"></div>
+    <div class="step" id="step2-ind" onclick="goToStep(2)"><div class="step-num">3</div> Compose &amp; Preview</div>
+    <div class="step-line"></div>
+    <div class="step" id="step3-ind" onclick="goToStep(3)"><div class="step-num">4</div> Send</div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- STEP 0 — SETUP (Gmail config + Profile) -->
+  <!-- ════════════════════════════════════════════════ -->
+  <div id="step0">
+
+    <!-- Backend status -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          Backend Status
+        </div>
+        <span id="backend-badge" class="badge badge-warn">⚠ Checking…</span>
+      </div>
+      <div class="setup-notice">
+        <div class="setup-notice-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          How to start the backend
+        </div>
+        <ol class="setup-steps-list">
+          <li><div class="num">1</div><span>Open VS Code and open the <code>hr-mailer</code> folder</span></li>
+          <li><div class="num">2</div><span>Open terminal: <strong>Terminal → New Terminal</strong></span></li>
+          <li><div class="num">3</div><span>Type: <code>node server.js</code> and press Enter</span></li>
+          <li><div class="num">4</div><span>You should see: <code>✓ HR Mailer backend running on http://localhost:3000</code></span></li>
+          <li><div class="num">5</div><span>Click <strong>Retry</strong> on the banner above — it should turn green</span></li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- Gmail Config — entered in UI, no .env needed -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          Gmail Configuration
+        </div>
+        <span class="badge badge-purple">Replaces .env file</span>
+      </div>
+      <div class="info-row">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span>Your Gmail credentials are sent to your local backend only. To create an App Password: <strong>Google Account → Security → 2-Step Verification → App passwords</strong>.</span>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>GMAIL ADDRESS</label>
+          <input type="email" id="cfg-gmail-user" placeholder="you@gmail.com">
+        </div>
+        <div class="field">
+          <label>APP PASSWORD (16 chars, no spaces)</label>
+          <input type="password" id="cfg-gmail-pass" placeholder="xxxx xxxx xxxx xxxx">
+        </div>
+      </div>
+      <div class="field">
+        <label>SENDER DISPLAY NAME</label>
+        <input type="text" id="cfg-sender-name" placeholder="e.g. Ahmed Al Mansoori">
+      </div>
+      <div style="margin-top:6px">
+        <button class="btn btn-secondary btn-sm" onclick="testGmailConfig()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          Test Connection
+        </button>
+        <span id="gmail-test-status" style="font-size:11px;font-family:'DM Mono',monospace;margin-left:10px;color:var(--muted)"></span>
+      </div>
+    </div>
+
+    <!-- Profile (Your Info) -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Your Profile
+        </div>
+        <span class="badge badge-purple">Becomes variables in email</span>
+      </div>
+
+      <!-- Saved profiles bar -->
+      <div id="profiles-section">
+        <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">
+          <span>SAVED PROFILES</span>
+          <button class="btn btn-secondary btn-sm" onclick="openSaveProfileModal()">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Save Current as Profile
+          </button>
+        </div>
+        <div class="profiles-bar" id="profiles-bar">
+          <span style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);font-style:italic">No saved profiles yet</span>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>YOUR FULL NAME</label>
+          <input type="text" id="cfg-name" placeholder="e.g. Ahmed Al Mansoori" oninput="syncBuiltinVars()">
+        </div>
+        <div class="field">
+          <label>YOUR EMAIL</label>
+          <input type="email" id="cfg-email" placeholder="you@gmail.com" oninput="syncBuiltinVars()">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>TARGET ROLE / POSITION</label>
+          <input type="text" id="cfg-role" placeholder="e.g. Software Engineer" oninput="syncBuiltinVars()">
+        </div>
+        <div class="field">
+          <label>YOUR PHONE (optional)</label>
+          <input type="text" id="cfg-phone" placeholder="+971 50 123 4567" oninput="syncBuiltinVars()">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>LINKEDIN URL (optional)</label>
+          <input type="text" id="cfg-linkedin" placeholder="https://linkedin.com/in/yourprofile" oninput="syncBuiltinVars()">
+        </div>
+        <div class="field">
+          <label>PORTFOLIO / WEBSITE (optional)</label>
+          <input type="text" id="cfg-portfolio" placeholder="https://yoursite.com" oninput="syncBuiltinVars()">
+        </div>
+      </div>
+
+      <!-- Custom variables inline -->
+      <div class="divider"></div>
+      <div class="card-header" style="margin-bottom:10px">
+        <div class="card-title">Custom Variables</div>
+        <span class="badge badge-purple" id="custom-var-count">0 custom</span>
+      </div>
+      <div class="info-row" style="margin-bottom:10px">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        <span>Add reusable variables like <code>{{portfolio_url}}</code>, <code>{{years_exp}}</code>. Use lowercase + underscores.</span>
+      </div>
+      <div id="custom-vars-list">
+        <div style="text-align:center;padding:16px;color:var(--muted);font-family:'DM Mono',monospace;font-size:12px">No custom variables yet.</div>
+      </div>
+      <button class="btn btn-secondary mt-2" onclick="addCustomVar()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Custom Variable
+      </button>
+    </div>
+
+    <div style="text-align:right">
+      <button class="btn btn-primary" onclick="goToStep(1)">
+        Next: HR Contacts
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- STEP 1 — HR CONTACTS -->
+  <!-- ════════════════════════════════════════════════ -->
+  <div id="step1" class="hidden">
+    <!-- Saved HR Lists bar -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Saved HR Lists
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="openSaveHRListModal()">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Save Current as HR List
+        </button>
+      </div>
+      <div class="profiles-bar" id="hrlist-bar">
+        <span style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);font-style:italic">No saved HR lists yet</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          HR Contacts
+        </div>
+        <span class="badge badge-purple" id="hr-count">0 contacts</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1.4fr 1fr auto;gap:10px;padding:0 11px 8px">
+        <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px">Name (Optional)</span>
+        <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px">Email (Required)</span>
+        <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px">Company (Optional)</span>
+        <span></span>
+      </div>
+      <div id="hr-list"></div>
+      <div class="flex gap-2 mt-3" style="flex-wrap:wrap">
+        <button class="btn btn-secondary" onclick="addHR()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Contact
+        </button>
+        <button class="btn btn-secondary" onclick="document.getElementById('csv-input').click()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Import CSV
+        </button>
+        <button class="btn btn-secondary" onclick="exportCSV()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export CSV
+        </button>
+        <button class="btn btn-secondary" onclick="showTemplateModal()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          Import Template
+        </button>
+        <input type="file" id="csv-input" accept=".csv" class="hidden" onchange="handleCSV(event)">
+      </div>
+      <div style="margin-top:9px;font-size:11px;font-family:'DM Mono',monospace;color:var(--muted)">CSV columns: <code>Name, Email, Company</code></div>
+    </div>
+    <div class="flex gap-2" style="justify-content:space-between">
+      <button class="btn btn-secondary" onclick="goToStep(0)">← Back</button>
+      <button class="btn btn-primary" onclick="goToStep(2)">Next: Compose &amp; Preview <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- STEP 2 — COMPOSE + PREVIEW (single page) -->
+  <!-- ════════════════════════════════════════════════ -->
+  <div id="step2" class="hidden">
+
+    <div class="compose-layout">
+      <!-- LEFT: compose -->
+      <div class="compose-main">
+        <div class="card" style="margin-bottom:0">
+          <div class="card-header">
+            <div class="card-title">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+              Compose Email
+            </div>
+          </div>
+          <div class="field">
+            <label>SUBJECT LINE <span style="color:var(--muted);font-style:italic">(click a variable on the right to insert)</span></label>
+            <input type="text" id="subject" placeholder="Application for {{position}} — {{your_name}}" oninput="updatePreview()" onfocus="setActiveField('subject')">
+          </div>
+          <div class="field">
+            <label>EMAIL BODY</label>
+            <textarea id="body" oninput="updatePreview()" onfocus="setActiveField('body')"></textarea>
+          </div>
+          <!-- Resume attachment -->
+          <div style="margin-top:6px">
+            <label>ATTACH RESUME</label>
+            <div class="attachment-zone" id="attachment-zone" onclick="document.getElementById('resume-input').click()">
+              <div id="attachment-placeholder">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5" style="margin-bottom:6px"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                <div style="font-size:12px;color:var(--muted);font-family:'DM Mono',monospace">Click to attach resume (PDF, DOC, DOCX)</div>
+                <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;margin-top:3px">Max 10 MB</div>
+              </div>
+            </div>
+            <input type="file" id="resume-input" accept=".pdf,.doc,.docx,.txt,.rtf" class="hidden" onchange="handleResumeUpload(event)">
+            <div id="attachment-info-wrap"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: variables sidebar -->
+      <div class="vars-sidebar">
+        <div class="vars-sidebar-title">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          Variables
+          <span style="color:var(--muted);font-weight:400;font-size:9px;margin-left:auto">click to insert</span>
+        </div>
+        <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:6px">HR Data</div>
+        <div id="sidebar-hr-chips"></div>
+        <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:0.4px;margin:10px 0 6px">Your Info</div>
+        <div id="sidebar-builtin-chips"></div>
+        <div id="sidebar-custom-section">
+          <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:0.4px;margin:10px 0 6px">Custom</div>
+          <div id="sidebar-custom-chips"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PREVIEW SECTION (same page, below compose) -->
+    <div class="card" style="margin-top:16px">
+      <div class="card-header">
+        <div class="card-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          Live Preview
+        </div>
+        <select id="preview-select" onchange="updatePreview()" style="width:auto;padding:5px 10px;font-size:12px"></select>
+      </div>
+      <div class="preview-subject-label">SUBJECT</div>
+      <div class="preview-subject-box" id="preview-subject-box">—</div>
+      <div class="preview-subject-label" style="margin-top:12px">BODY</div>
+      <div id="preview-box">Fill in a template and select a contact to preview…</div>
+      <div id="preview-attachment-section" class="hidden">
+        <div class="preview-subject-label" style="margin-top:12px">ATTACHMENT</div>
+        <div class="preview-attachment">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+          <span id="preview-attachment-name" style="color:var(--text)">—</span>
+          <span id="preview-attachment-size" style="color:var(--muted);font-size:11px;margin-left:auto"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex gap-2" style="justify-content:space-between;margin-top:16px">
+      <button class="btn btn-secondary" onclick="goToStep(1)">← Back</button>
+      <button class="btn btn-primary" onclick="goToStep(3)">Review &amp; Send <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- STEP 3 — SEND -->
+  <!-- ════════════════════════════════════════════════ -->
+  <div id="step3" class="hidden">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Send Queue</div>
+        <span class="badge badge-purple" id="queue-badge"></span>
+      </div>
+      <div id="queue-preview" style="margin-bottom:13px"></div>
+      <div id="progress-wrap"><div id="progress-bar"></div></div>
+      <div id="send-log"></div>
+      <div class="stats-row hidden" id="stats-row">
+        <div class="stat-box"><div class="stat-num" id="stat-sent" style="color:var(--success)">0</div><div class="stat-label">Sent</div></div>
+        <div class="stat-box"><div class="stat-num" id="stat-failed" style="color:var(--accent2)">0</div><div class="stat-label">Failed</div></div>
+        <div class="stat-box"><div class="stat-num" id="stat-total" style="color:var(--accent)">0</div><div class="stat-label">Total</div></div>
+      </div>
+    </div>
+    <div class="flex gap-2" style="justify-content:space-between">
+      <button class="btn btn-secondary" id="back-btn" onclick="goToStep(2)">← Back</button>
+      <button class="btn btn-success" id="send-btn" onclick="startSending()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        Send All via Gmail
+      </button>
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<!-- Save Profile Modal -->
+<div id="save-profile-modal" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-title">💾 Save Profile</div>
+    <div class="field">
+      <label>PROFILE NAME</label>
+      <input type="text" id="new-profile-name" placeholder="e.g. Software Engineer — Dubai" onkeydown="if(event.key==='Enter')confirmSaveProfile()">
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmSaveProfile()">Save Profile</button>
+    </div>
+  </div>
+</div>
+
+<!-- Template Preview Modal -->
+<div id="template-modal" class="modal-overlay hidden">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-title">📋 Import CSV Template</div>
+    <div style="font-size:12px;font-family:'DM Mono',monospace;color:var(--muted);margin-bottom:12px">
+      Your CSV file should have these columns in this order:
+    </div>
+    <table class="template-table">
+      <thead><tr><th>Name</th><th>Email</th><th>Company</th></tr></thead>
+      <tbody>
+        <tr><td>Sarah Johnson</td><td>sarah@techcorp.com</td><td>TechCorp</td></tr>
+        <tr><td>Ahmed Ali</td><td>ahmed@nexgen.ae</td><td>NexGen Solutions</td></tr>
+        <tr><td>Lisa Wang</td><td>lisa.w@innovate.io</td><td>Innovate Inc</td></tr>
+      </tbody>
+    </table>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px">
+      <button class="btn btn-secondary" onclick="closeModal()">Close</button>
+      <button class="btn btn-primary" onclick="downloadTemplate()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download Template CSV
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Save HR List Modal -->
+<div id="save-hrlist-modal" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-title">💾 Save HR List</div>
+    <div class="field">
+      <label>HR LIST NAME</label>
+      <input type="text" id="new-hrlist-name" placeholder="e.g. Tech Companies — Dubai" onkeydown="if(event.key==='Enter')confirmSaveHRList()">
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmSaveHRList()">Save HR List</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const BACKEND = 'http://localhost:3000';
+
+let hrList = [];
+let customVars = [];
+let sending = false;
+let activeField = 'body';
+let resumeAttachment = null; // { filename, storedName, size }
+
+const BUILTIN_KEYS = ['your_name','your_email','position','your_phone','linkedin','portfolio'];
+const HR_KEYS      = ['hr_name','company'];
+
+// ── THEME ──────────────────────────────────────────────────────
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  document.getElementById('dark-btn').classList.toggle('active', !isDark);
+  document.getElementById('light-btn').classList.toggle('active', isDark);
+  localStorage.setItem('hrm-theme', isDark ? 'light' : 'dark');
+}
+function initTheme() {
+  const saved = localStorage.getItem('hrm-theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', saved);
+  document.getElementById('dark-btn').classList.toggle('active', saved === 'dark');
+  document.getElementById('light-btn').classList.toggle('active', saved === 'light');
+}
+
+// ── BACKEND CHECK ──────────────────────────────────────────────
+async function checkBackend() {
+  const banner = document.getElementById('backend-banner');
+  const msg    = document.getElementById('backend-msg');
+  const badge  = document.getElementById('backend-badge');
+  banner.className = 'checking';
+  msg.innerHTML = '<span class="spinner" style="display:inline-block;width:12px;height:12px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:6px"></span> Checking backend…';
+  try {
+    const r = await fetch(BACKEND + '/');
+    const data = await r.json();
+    banner.className = 'ok';
+    msg.textContent = '✓ Backend connected — ' + (data.status || 'running');
+    badge.className = 'badge badge-green';
+    badge.textContent = '✓ Connected';
+  } catch(e) {
+    banner.className = 'err';
+    msg.textContent = '✗ Backend not running — start it with: node server.js';
+    badge.className = 'badge badge-red';
+    badge.textContent = '✗ Not running';
+  }
+}
+
+// ── GMAIL CONFIG TEST ──────────────────────────────────────────
+async function testGmailConfig() {
+  const user = document.getElementById('cfg-gmail-user').value.trim();
+  const pass = document.getElementById('cfg-gmail-pass').value.trim();
+  const st = document.getElementById('gmail-test-status');
+  if (!user || !pass) { st.textContent = '⚠ Enter Gmail and App Password first'; st.style.color = 'var(--warn)'; return; }
+  st.textContent = 'Testing…'; st.style.color = 'var(--muted)';
+  try {
+    const r = await fetch(BACKEND + '/config', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ gmailUser: user, gmailPass: pass, senderName: document.getElementById('cfg-sender-name').value })
+    });
+    const data = await r.json();
+    if (data.status === 'ok') {
+      st.textContent = '✓ Config saved to backend'; st.style.color = 'var(--success)';
+    } else {
+      st.textContent = '✗ ' + (data.message || 'Failed'); st.style.color = 'var(--accent2)';
+    }
+  } catch(e) {
+    st.textContent = '✗ Backend not reachable'; st.style.color = 'var(--accent2)';
+  }
+}
+
+// ── PROFILES ──────────────────────────────────────────────────
+function getProfiles() { try { return JSON.parse(localStorage.getItem('hrm-profiles') || '[]'); } catch(e) { return []; } }
+function saveProfiles(list) { localStorage.setItem('hrm-profiles', JSON.stringify(list)); }
+
+function openSaveProfileModal() {
+  document.getElementById('new-profile-name').value = '';
+  document.getElementById('save-profile-modal').classList.remove('hidden');
+  setTimeout(() => document.getElementById('new-profile-name').focus(), 50);
+}
+function closeModal() {
+  document.getElementById('save-profile-modal').classList.add('hidden');
+  document.getElementById('template-modal').classList.add('hidden');
+  document.getElementById('save-hrlist-modal').classList.add('hidden');
+}
+function confirmSaveProfile() {
+  const name = document.getElementById('new-profile-name').value.trim();
+  if (!name) { showToast('⚠ Enter a profile name'); return; }
+  const profiles = getProfiles();
+  const profile = {
+    id: Date.now(),
+    name,
+    cfgName: document.getElementById('cfg-name').value,
+    cfgEmail: document.getElementById('cfg-email').value,
+    cfgRole: document.getElementById('cfg-role').value,
+    cfgPhone: document.getElementById('cfg-phone').value,
+    cfgLinkedin: document.getElementById('cfg-linkedin').value,
+    cfgPortfolio: document.getElementById('cfg-portfolio').value,
+    cfgGmailUser: document.getElementById('cfg-gmail-user').value,
+    cfgSenderName: document.getElementById('cfg-sender-name').value,
+    customVars: JSON.parse(JSON.stringify(customVars)),
+    subject: document.getElementById('subject')?.value || '',
+    body: document.getElementById('body')?.value || ''
+  };
+  // Also save to backend
+  saveProfileToBackend(profile);
+  profiles.push(profile);
+  saveProfiles(profiles);
+  renderProfilesBar();
+  closeModal();
+  showToast(`✓ Profile "${name}" saved`);
+}
+async function saveProfileToBackend(profile) {
+  try {
+    await fetch(BACKEND + '/profiles', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(profile)
+    });
+  } catch(e) { /* backend may not support it yet */ }
+}
+function loadProfile(id) {
+  const profiles = getProfiles();
+  const p = profiles.find(x => x.id === id);
+  if (!p) return;
+  document.getElementById('cfg-name').value = p.cfgName || '';
+  document.getElementById('cfg-email').value = p.cfgEmail || '';
+  document.getElementById('cfg-role').value = p.cfgRole || '';
+  document.getElementById('cfg-phone').value = p.cfgPhone || '';
+  document.getElementById('cfg-linkedin').value = p.cfgLinkedin || '';
+  document.getElementById('cfg-portfolio').value = p.cfgPortfolio || '';
+  if (p.cfgGmailUser) document.getElementById('cfg-gmail-user').value = p.cfgGmailUser;
+  if (p.cfgSenderName) document.getElementById('cfg-sender-name').value = p.cfgSenderName;
+  if (p.customVars) { customVars = p.customVars; renderCustomVars(); updateCustomVarCount(); }
+  if (p.subject) document.getElementById('subject').value = p.subject;
+  if (p.body) document.getElementById('body').value = p.body;
+  syncBuiltinVars();
+  renderProfilesBar(id);
+  showToast(`✓ Loaded profile "${p.name}"`);
+}
+function deleteProfile(id, e) {
+  e.stopPropagation();
+  const profiles = getProfiles().filter(p => p.id !== id);
+  saveProfiles(profiles);
+  // Also try to delete from backend
+  fetch(BACKEND + '/profiles/' + id, { method: 'DELETE' }).catch(()=>{});
+  renderProfilesBar();
+  showToast('Profile deleted');
+}
+function renderProfilesBar(activeId = null) {
+  const bar = document.getElementById('profiles-bar');
+  const profiles = getProfiles();
+  if (profiles.length === 0) {
+    bar.innerHTML = '<span style="font-size:11px;font-family:\'DM Mono\',monospace;color:var(--muted);font-style:italic">No saved profiles yet</span>';
+    return;
+  }
+  bar.innerHTML = profiles.map(p => `
+    <div class="profile-chip ${p.id === activeId ? 'active-profile':''}" onclick="loadProfile(${p.id})">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      ${esc(p.name)}
+      <span class="del-profile" onclick="deleteProfile(${p.id},event)" title="Delete profile">×</span>
+    </div>`).join('');
+}
+
+// ── ACTIVE FIELD TRACKING ──────────────────────────────────────
+function setActiveField(f) { activeField = f; }
+
+// ── BUILT-IN VARS ─────────────────────────────────────────────
+function getBuiltinMap() {
+  const phone = document.getElementById('cfg-phone')?.value;
+  return {
+    your_name:  document.getElementById('cfg-name')?.value    || '',
+    your_email: document.getElementById('cfg-email')?.value   || '',
+    position:   document.getElementById('cfg-role')?.value    || 'Software Engineer',
+    your_phone: phone ? '\n'+phone : '',
+    linkedin:   document.getElementById('cfg-linkedin')?.value|| '',
+    portfolio:  document.getElementById('cfg-portfolio')?.value|| '',
+  };
+}
+function syncBuiltinVars() { renderSidebarChips(); updatePreview(); }
+
+// ── CUSTOM VARS ───────────────────────────────────────────────
+function addCustomVar(data={}) {
+  const id = Date.now()+Math.random();
+  customVars.push({id, key:data.key||'', value:data.value||''});
+  renderCustomVars(); renderSidebarChips(); updateCustomVarCount();
+}
+function removeCustomVar(id) { customVars=customVars.filter(v=>v.id!==id); renderCustomVars(); renderSidebarChips(); updateCustomVarCount(); updatePreview(); }
+function updateCustomVar(id,field,val) { const v=customVars.find(v=>v.id===id); if(!v)return; v[field]=val; renderSidebarChips(); updatePreview(); }
+function renderCustomVars() {
+  const c=document.getElementById('custom-vars-list');
+  if(customVars.length===0){ c.innerHTML=`<div style="text-align:center;padding:14px;color:var(--muted);font-family:'DM Mono',monospace;font-size:12px">No custom variables yet.</div>`; return; }
+  c.innerHTML=customVars.map(v=>`
+    <div class="var-row" id="cvar-${v.id}">
+      <input type="text" placeholder="e.g. portfolio_url" value="${esc(v.key)}" style="font-family:'DM Mono',monospace;color:var(--accent)" oninput="updateCustomVar(${v.id},'key',this.value)">
+      <input type="text" placeholder="Default value…" value="${esc(v.value)}" oninput="updateCustomVar(${v.id},'value',this.value)">
+      <button class="btn-icon" onclick="removeCustomVar(${v.id})">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+      </button>
+    </div>`).join('');
+}
+function updateCustomVarCount(){ document.getElementById('custom-var-count').textContent=`${customVars.length} custom`; }
+
+// ── SIDEBAR CHIPS ─────────────────────────────────────────────
+function renderSidebarChips() {
+  const hrChips = document.getElementById('sidebar-hr-chips');
+  const builtinChips = document.getElementById('sidebar-builtin-chips');
+  const customChips = document.getElementById('sidebar-custom-chips');
+  const customSection = document.getElementById('sidebar-custom-section');
+  if (hrChips) hrChips.innerHTML = HR_KEYS.map(k => chipHtml(`{{${k}}}`)).join('');
+  if (builtinChips) builtinChips.innerHTML = BUILTIN_KEYS.map(k => chipHtml(`{{${k}}}`)).join('');
+  const cVars = customVars.filter(v=>v.key);
+  if (customChips) customChips.innerHTML = cVars.map(v => chipHtml(`{{${v.key}}}`)).join('');
+  if (customSection) customSection.style.display = cVars.length ? '' : 'none';
+}
+function chipHtml(v) {
+  return `<span class="var-chip" onclick="insertVar('${v}')">${esc(v)}</span>`;
+}
+function insertVar(v) {
+  const ta = document.getElementById(activeField === 'subject' ? 'subject' : 'body');
+  if (!ta) return;
+  const s=ta.selectionStart, e=ta.selectionEnd;
+  ta.value=ta.value.slice(0,s)+v+ta.value.slice(e);
+  ta.focus(); ta.setSelectionRange(s+v.length, s+v.length);
+  updatePreview();
+}
+
+// ── HR LIST ───────────────────────────────────────────────────
+function addHR(data={}){ const id=Date.now()+Math.random(); hrList.push({id,name:data.name||'',email:data.email||'',company:data.company||''}); renderHRList(); updatePreviewSelect(); updateHRCount(); }
+function removeHR(id){ hrList=hrList.filter(h=>h.id!==id); renderHRList(); updatePreviewSelect(); updateHRCount(); }
+function updateHRField(id,field,val){ const h=hrList.find(h=>h.id===id); if(h){h[field]=val; updatePreviewSelect(); updatePreview();} }
+function renderHRList(){
+  const c=document.getElementById('hr-list');
+  if(hrList.length===0){ c.innerHTML=`<div style="text-align:center;padding:20px;color:var(--muted);font-family:'DM Mono',monospace;font-size:12px">No contacts yet.</div>`; return; }
+  c.innerHTML=hrList.map(h=>`
+    <div class="hr-entry">
+      <input type="text" placeholder="Name (Optional)" value="${esc(h.name)}" oninput="updateHRField(${h.id},'name',this.value)">
+      <input type="email" placeholder="Email (Required)" value="${esc(h.email)}" oninput="updateHRField(${h.id},'email',this.value)">
+      <input type="text" placeholder="Company (Optional)" value="${esc(h.company)}" oninput="updateHRField(${h.id},'company',this.value)">
+      <button class="btn-icon" onclick="removeHR(${h.id})">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+      </button>
+    </div>`).join('');
+}
+function updateHRCount(){ document.getElementById('hr-count').textContent=`${hrList.length} contact${hrList.length!==1?'s':''}`; }
+function handleCSV(e){
+  const file=e.target.files[0]; if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const lines=ev.target.result.trim().split('\n'); let added=0;
+    lines.forEach((line,i)=>{ if(i===0&&line.toLowerCase().includes('name'))return; const cols=line.split(',').map(c=>c.trim().replace(/^"|"$/g,'')); if(cols.length>=2){addHR({name:cols[0],email:cols[1],company:cols[2]||''});added++;} });
+    showToast(`✓ Imported ${added} contacts`);
+  };
+  reader.readAsText(file); e.target.value='';
+}
+
+// ── SAVED HR LISTS (named, like Profiles) ─────────────────────
+function getSavedHRLists() {
+  try { return JSON.parse(localStorage.getItem('hrm-saved-hrlists') || '[]'); }
+  catch(e) { return []; }
+}
+function persistSavedHRLists(lists) {
+  localStorage.setItem('hrm-saved-hrlists', JSON.stringify(lists));
+}
+function openSaveHRListModal() {
+  if (hrList.length === 0) { showToast('⚠ Add contacts first before saving'); return; }
+  document.getElementById('new-hrlist-name').value = '';
+  document.getElementById('save-hrlist-modal').classList.remove('hidden');
+  setTimeout(() => document.getElementById('new-hrlist-name').focus(), 50);
+}
+function confirmSaveHRList() {
+  const name = document.getElementById('new-hrlist-name').value.trim();
+  if (!name) { showToast('⚠ Enter a name for this HR list'); return; }
+  const lists = getSavedHRLists();
+  const savedList = {
+    id: Date.now(),
+    name,
+    contacts: JSON.parse(JSON.stringify(hrList))
+  };
+  lists.push(savedList);
+  persistSavedHRLists(lists);
+  // Also save to backend
+  saveHRListToBackend(savedList);
+  renderHRListBar(savedList.id);
+  closeModal();
+  showToast(`✓ HR list "${name}" saved — ${hrList.length} contacts`);
+}
+async function saveHRListToBackend(savedList) {
+  try {
+    await fetch(BACKEND + '/hrlist', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(savedList)
+    });
+  } catch(e) { /* backend may not be running */ }
+}
+function loadSavedHRList(id) {
+  const lists = getSavedHRLists();
+  const list = lists.find(l => l.id === id);
+  if (!list) return;
+  // Clear current contacts and load saved ones
+  hrList = [];
+  document.getElementById('hr-list').innerHTML = '';
+  list.contacts.forEach(h => addHR({ name: h.name, email: h.email, company: h.company }));
+  renderHRListBar(id);
+  showToast(`✓ Loaded "${list.name}" — ${list.contacts.length} contacts`);
+}
+function deleteSavedHRList(id, e) {
+  e.stopPropagation();
+  const lists = getSavedHRLists().filter(l => l.id !== id);
+  persistSavedHRLists(lists);
+  // Also delete from backend
+  fetch(`${BACKEND}/hrlist/${id}`, { method: 'DELETE' }).catch(() => {});
+  renderHRListBar();
+  showToast('HR list deleted');
+}
+function renderHRListBar(activeId = null) {
+  const bar = document.getElementById('hrlist-bar');
+  const lists = getSavedHRLists();
+  if (lists.length === 0) {
+    bar.innerHTML = '<span style="font-size:11px;font-family:\'DM Mono\',monospace;color:var(--muted);font-style:italic">No saved HR lists yet</span>';
+    return;
+  }
+  bar.innerHTML = lists.map(l => `
+    <div class="profile-chip ${l.id === activeId ? 'active-profile':''}" onclick="loadSavedHRList(${l.id})">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+      ${esc(l.name)} <span style="color:var(--muted);font-size:10px;margin-left:2px">(${l.contacts.length})</span>
+      <span class="del-profile" onclick="deleteSavedHRList(${l.id},event)" title="Delete list">×</span>
+    </div>`).join('');
+}
+
+// ── EXPORT CSV ────────────────────────────────────────────────
+function exportCSV() {
+  if (hrList.length === 0) { showToast('⚠ No contacts to export'); return; }
+  const header = 'Name,Email,Company';
+  const rows = hrList.map(h => `"${(h.name||'').replace(/"/g,'""')}","${(h.email||'').replace(/"/g,'""')}","${(h.company||'').replace(/"/g,'""')}"`);
+  const csv = [header, ...rows].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'hr_contacts.csv'; a.click();
+  URL.revokeObjectURL(url);
+  showToast(`✓ Exported ${hrList.length} contacts`);
+}
+
+// ── DOWNLOAD TEMPLATE ─────────────────────────────────────────
+function downloadTemplate() {
+  const csv = 'Name,Email,Company\nSarah Johnson,sarah@techcorp.com,TechCorp\nAhmed Ali,ahmed@nexgen.ae,NexGen Solutions\nLisa Wang,lisa.w@innovate.io,Innovate Inc';
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'hr_contacts_template.csv'; a.click();
+  URL.revokeObjectURL(url);
+  closeModal();
+  showToast('✓ Template CSV downloaded');
+}
+function showTemplateModal() {
+  document.getElementById('template-modal').classList.remove('hidden');
+}
+
+// ── RESUME UPLOAD ─────────────────────────────────────────────
+async function handleResumeUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const zone = document.getElementById('attachment-zone');
+  const placeholder = document.getElementById('attachment-placeholder');
+  const infoWrap = document.getElementById('attachment-info-wrap');
+  // Show uploading state
+  placeholder.innerHTML = '<div class="spinner" style="margin:0 auto"></div><div style="font-size:12px;color:var(--muted);font-family:\'DM Mono\',monospace;margin-top:6px">Uploading…</div>';
+  try {
+    const formData = new FormData();
+    formData.append('resume', file);
+    const r = await fetch(BACKEND + '/upload-resume', { method: 'POST', body: formData });
+    const data = await r.json();
+    if (data.status === 'ok') {
+      resumeAttachment = { filename: data.filename, storedName: data.storedName, size: data.size };
+      zone.classList.add('has-file');
+      placeholder.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2" style="margin-bottom:4px"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><div style="font-size:12px;color:var(--success);font-family:'DM Mono',monospace">Resume attached!</div>`;
+      const sizeKB = (data.size / 1024).toFixed(1);
+      infoWrap.innerHTML = `
+        <div class="attachment-info">
+          <span class="file-icon">📄</span>
+          <div class="file-details">
+            <div class="file-name">${esc(data.filename)}</div>
+            <div class="file-size">${sizeKB} KB</div>
+          </div>
+          <button class="btn-icon" onclick="removeAttachment(event)" title="Remove attachment">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>`;
+      // Update preview
+      updateAttachmentPreview();
+      showToast(`✓ Resume uploaded: ${data.filename}`);
+    } else {
+      resetAttachmentZone();
+      showToast('✗ Upload failed: ' + (data.message || 'Unknown error'));
+    }
+  } catch(err) {
+    resetAttachmentZone();
+    showToast('✗ Backend not reachable — start server first');
+  }
+  e.target.value = '';
+}
+function removeAttachment(e) {
+  if (e) e.stopPropagation();
+  resumeAttachment = null;
+  resetAttachmentZone();
+  updateAttachmentPreview();
+  showToast('Attachment removed');
+}
+function resetAttachmentZone() {
+  const zone = document.getElementById('attachment-zone');
+  const placeholder = document.getElementById('attachment-placeholder');
+  const infoWrap = document.getElementById('attachment-info-wrap');
+  zone.classList.remove('has-file');
+  placeholder.innerHTML = `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5" style="margin-bottom:6px"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg><div style="font-size:12px;color:var(--muted);font-family:'DM Mono',monospace">Click to attach resume (PDF, DOC, DOCX)</div><div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;margin-top:3px">Max 10 MB</div>`;
+  infoWrap.innerHTML = '';
+}
+function updateAttachmentPreview() {
+  const section = document.getElementById('preview-attachment-section');
+  const nameEl = document.getElementById('preview-attachment-name');
+  const sizeEl = document.getElementById('preview-attachment-size');
+  if (resumeAttachment) {
+    section.classList.remove('hidden');
+    nameEl.textContent = resumeAttachment.filename;
+    sizeEl.textContent = (resumeAttachment.size / 1024).toFixed(1) + ' KB';
+  } else {
+    section.classList.add('hidden');
+    nameEl.textContent = '—';
+    sizeEl.textContent = '';
+  }
+}
+
+// ── APPLY VARS ────────────────────────────────────────────────
+function applyVars(text, hr) {
+  const m = getBuiltinMap(); let out = text;
+  out=out.replace(/\{\{hr_name\}\}/g, hr.name||'[HR Name]');
+  out=out.replace(/\{\{company\}\}/g, hr.company||'[Company]');
+  BUILTIN_KEYS.forEach(k=>{ out=out.replace(new RegExp(`\\{\\{${k}\\}\\}`,'g'), m[k]||`[${k}]`); });
+  customVars.forEach(v=>{ if(v.key) out=out.replace(new RegExp(`\\{\\{${v.key}\\}\\}`,'g'), v.value||`[${v.key}]`); });
+  return out;
+}
+
+// ── PREVIEW ───────────────────────────────────────────────────
+function updatePreviewSelect(){
+  const sel=document.getElementById('preview-select'); if(!sel)return;
+  const cur=sel.value;
+  sel.innerHTML=hrList.length?hrList.map((h,i)=>`<option value="${i}">${esc(h.name||'Contact '+(i+1))} — ${esc(h.company||'?')}</option>`).join(''):'<option>No contacts</option>';
+  if(cur)sel.value=cur;
+}
+function updatePreview(){
+  const sel=document.getElementById('preview-select'); if(!sel)return;
+  const hr=hrList[parseInt(sel.value)];
+  const subject=document.getElementById('subject')?.value||'';
+  const body=document.getElementById('body')?.value||'';
+  const subBox=document.getElementById('preview-subject-box');
+  const bodyBox=document.getElementById('preview-box');
+  if(subBox) subBox.textContent = hr ? applyVars(subject,hr) : (subject||'—');
+  if(bodyBox) bodyBox.textContent = hr ? applyVars(body,hr) : body;
+}
+
+// ── QUEUE PREVIEW ─────────────────────────────────────────────
+function renderQueuePreview(){
+  const el=document.getElementById('queue-preview');
+  document.getElementById('queue-badge').textContent=`${hrList.length} email${hrList.length!==1?'s':''}`;
+  document.getElementById('stat-total').textContent=hrList.length;
+  el.innerHTML=hrList.slice(0,6).map(h=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 11px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;margin-bottom:6px;font-size:12px;font-family:'DM Mono',monospace;">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+      <span style="flex:1">${esc(h.name||'Unknown')} &lt;${esc(h.email)}&gt;</span>
+      <span style="color:var(--muted)">${esc(h.company)}</span>
+    </div>`).join('')+(hrList.length>6?`<div style="text-align:center;font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;padding:5px">+${hrList.length-6} more…</div>`:'');
+}
+
+// ── NAVIGATION ────────────────────────────────────────────────
+function goToStep(n){
+  if(n===2){ renderSidebarChips(); updatePreviewSelect(); updatePreview(); updateAttachmentPreview(); }
+  if(n===3){ renderQueuePreview(); }
+  for(let i=0;i<=3;i++){
+    const el=document.getElementById(`step${i}`); if(el)el.classList.toggle('hidden',i!==n);
+    const ind=document.getElementById(`step${i}-ind`); if(ind){ ind.classList.remove('active','done'); if(i<n)ind.classList.add('done'); else if(i===n)ind.classList.add('active'); }
+  }
+}
+
+// ── SEND ──────────────────────────────────────────────────────
+async function startSending(){
+  if(sending)return;
+  const gmailUser = document.getElementById('cfg-gmail-user').value.trim();
+  const gmailPass = document.getElementById('cfg-gmail-pass').value.trim();
+  if(!gmailUser||!gmailPass){ showToast('⚠ Set Gmail credentials in Setup first'); return; }
+  const valid=hrList.filter(h=>h.email.includes('@'));
+  if(valid.length===0){showToast('⚠ No valid email addresses');return;}
+  sending=true;
+  document.getElementById('send-btn').disabled=true;
+  document.getElementById('back-btn').disabled=true;
+  document.getElementById('send-log').innerHTML='';
+  document.getElementById('stats-row').classList.remove('hidden');
+  document.getElementById('progress-wrap').style.display='block';
+  const subjectTmpl=document.getElementById('subject').value;
+  const bodyTmpl=document.getElementById('body').value;
+  let sent=0,failed=0;
+
+  // Push config to backend before sending
+  try {
+    await fetch(BACKEND + '/config', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ gmailUser, gmailPass, senderName: document.getElementById('cfg-sender-name').value || document.getElementById('cfg-name').value })
+    });
+  } catch(e){}
+
+  for(let i=0;i<valid.length;i++){
+    const hr=valid[i]; const logId=`log-${hr.id}`;
+    const log=document.getElementById('send-log');
+    log.innerHTML+=`<div class="log-item pending" id="${logId}"><div class="spinner"></div><div class="log-name">${esc(hr.name)} &lt;${esc(hr.email)}&gt;</div><div class="log-status">Sending…</div></div>`;
+    log.scrollTop=log.scrollHeight;
+    const pSubject=applyVars(subjectTmpl,hr);
+    const pBody=applyVars(bodyTmpl,hr);
+    try {
+      const payload = { to:hr.email, subject:pSubject, body:pBody };
+      if (resumeAttachment) payload.attachmentPath = resumeAttachment.storedName;
+      const r = await fetch(BACKEND + '/send', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+      const data = await r.json();
+      const el=document.getElementById(logId);
+      if(data.status==='sent'){
+        el.className='log-item success'; el.innerHTML=`<span>✓</span><div class="log-name">${esc(hr.name)} &lt;${esc(hr.email)}&gt;</div><div class="log-status">Sent!</div>`; sent++;
+      } else {
+        el.className='log-item error'; el.innerHTML=`<span>✗</span><div class="log-name">${esc(hr.name)} &lt;${esc(hr.email)}&gt;</div><div class="log-status">${esc(data.message||'Failed')}</div>`; failed++;
+      }
+    } catch(e){
+      const el=document.getElementById(logId);
+      if(el){ el.className='log-item error'; el.innerHTML=`<span>✗</span><div class="log-name">${esc(hr.name)} &lt;${esc(hr.email)}&gt;</div><div class="log-status">Backend not reachable — is node server.js running?</div>`; failed++; }
+    }
+    document.getElementById('progress-bar').style.width=((i+1)/valid.length*100)+'%';
+    document.getElementById('stat-sent').textContent=sent;
+    document.getElementById('stat-failed').textContent=failed;
+    if(i<valid.length-1) await sleep(800);
+  }
+  sending=false;
+  document.getElementById('send-btn').disabled=false;
+  document.getElementById('back-btn').disabled=false;
+  showToast(`✓ Done — ${sent} sent, ${failed} failed`);
+}
+
+// ── UTILS ─────────────────────────────────────────────────────
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3200); }
+
+// ── INIT ──────────────────────────────────────────────────────
+window.onload = async () => {
+  initTheme();
+  checkBackend();
+  renderProfilesBar();
+  renderSidebarChips();
+
+  // Load saved HR lists from backend to sync with localStorage
+  try {
+    const r = await fetch(BACKEND + '/hrlist');
+    const backendLists = await r.json();
+    if (Array.isArray(backendLists) && backendLists.length > 0) {
+      persistSavedHRLists(backendLists);
+    }
+  } catch(e) {}
+
+  renderHRListBar();
+  
+  // Default contacts if none loaded
+  if (hrList.length === 0) {
+    addHR({ name:'Sarah Johnson',      email:'sarah.hr@techcorp.com', company:'TechCorp' });
+    addHR({ name:'Mohammed Al Rashid', email:'m.rashid@nexgen.ae',    company:'NexGen'   });
+  }
+  updatePreviewSelect();
+  
+  // Set default position for preview
+  if (!document.getElementById('cfg-role').value) {
+    document.getElementById('cfg-role').value = 'Senior Software Test Engineer';
+  }
+
+  document.getElementById('subject').value = 'Application for {{position}} — {{your_name}}';
+  document.getElementById('body').value =
+`Dear {{hr_name}},
+
+I hope this finds you well. I am writing to express my strong interest in joining {{company}} as a {{position}}.
+
+With hands-on experience and a genuine passion for the field, I am confident I can contribute meaningfully to your team.
+
+Please find my resume attached for your review. I would love the opportunity to discuss how my background aligns with your needs.
+
+Thank you for your time and consideration.
+
+Warm regards,
+{{your_name}}
+{{your_email}}`;
+  updatePreview();
+};
+</script>
+</body>
+</html>
