@@ -89,9 +89,14 @@ app.post('/send', async (req, res) => {
     };
     // Attach resume if provided
     if (attachmentPath) {
-      const fullPath = path.join(UPLOADS_DIR, path.basename(attachmentPath));
+      const storedName = path.basename(attachmentPath);
+      const fullPath = path.join(UPLOADS_DIR, storedName);
       if (fs.existsSync(fullPath)) {
-        mailOptions.attachments = [{ path: fullPath }];
+        const displayFilename = storedName.substring(storedName.indexOf('-') + 1);
+        mailOptions.attachments = [{ 
+          filename: displayFilename,
+          path: fullPath 
+        }];
       }
     }
     await getTransporter().sendMail(mailOptions);
@@ -128,7 +133,8 @@ app.post('/hrlist', (req, res) => {
   if (existing >= 0) allLists[existing] = newList;
   else allLists.push(newList);
   saveJSON(HRLIST_FILE, allLists);
-  console.log(`✓ HR list saved: ${newList.name} (${newList.contacts.length} contacts)`);
+  const contactsCount = Array.isArray(newList.contacts) ? newList.contacts.length : 0;
+  console.log(`✓ HR list saved: ${newList.name} (${contactsCount} contacts)`);
   res.json({ status: 'ok' });
 });
 

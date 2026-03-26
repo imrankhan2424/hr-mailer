@@ -936,9 +936,9 @@ function loadSavedHRList(id) {
   // Clear current contacts and load saved ones
   hrList = [];
   document.getElementById('hr-list').innerHTML = '';
-  list.contacts.forEach(h => addHR({ name: h.name, email: h.email, company: h.company }));
+  (list.contacts || []).forEach(h => addHR({ name: h.name, email: h.email, company: h.company }));
   renderHRListBar(id);
-  showToast(`✓ Loaded "${list.name}" — ${list.contacts.length} contacts`);
+  showToast(`✓ Loaded "${list.name}" — ${(list.contacts || []).length} contacts`);
 }
 function deleteSavedHRList(id, e) {
   e.stopPropagation();
@@ -959,7 +959,7 @@ function renderHRListBar(activeId = null) {
   bar.innerHTML = lists.map(l => `
     <div class="profile-chip ${l.id === activeId ? 'active-profile':''}" onclick="loadSavedHRList(${l.id})">
       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-      ${esc(l.name)} <span style="color:var(--muted);font-size:10px;margin-left:2px">(${l.contacts.length})</span>
+      ${esc(l.name)} <span style="color:var(--muted);font-size:10px;margin-left:2px">(${(l.contacts || []).length})</span>
       <span class="del-profile" onclick="deleteSavedHRList(${l.id},event)" title="Delete list">×</span>
     </div>`).join('');
 }
@@ -1215,15 +1215,15 @@ window.onload = async () => {
   document.getElementById('body').value =
 `Dear {{hr_name}},
 
-I hope this finds you well. I am writing to express my strong interest in joining {{company}} as a {{position}}.
+I am writing to express my strong interest in joining {{company}} as a {{position}}.
 
-With hands-on experience and a genuine passion for the field, I am confident I can contribute meaningfully to your team.
+I am a dedicated Software Testing Professional with a passion for ensuring software quality and delivering flawless user experiences. My expertise spans manual and automated testing, API testing, performance analysis, and detailed defect management. I pride myself on identifying critical issues early in the development lifecycle to help teams launch stable and reliable products.
 
-Please find my resume attached for your review. I would love the opportunity to discuss how my background aligns with your needs.
+Please find my resume attached detailing my technical skills and past projects. I would greatly appreciate the opportunity to discuss how I can contribute to the QA and testing efforts at {{company}}.
 
 Thank you for your time and consideration.
 
-Warm regards,
+Best regards,
 {{your_name}}
 {{your_email}}`;
   updatePreview();
