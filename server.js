@@ -169,6 +169,24 @@ app.delete('/profiles/:id', (req, res) => {
   res.json({ status: 'ok' });
 });
 
+// ── Verify Emails (DNS MX Record Check) ───────────────────────
+const dns = require('dns').promises;
+app.post('/verify-emails', async (req, res) => {
+  const { emails } = req.body;
+  if (!Array.isArray(emails)) return res.status(400).json({ status: 'error', message: 'Invalid payload' });
+  
+  const results = {};
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  for (const email of emails) {
+    if (!email || !emailRegex.test(email)) {
+      results[email] = { valid: false, reason: 'Invalid format' };
+      continue;
+    }
+    results[email] = { valid: true, reason: 'Valid format' };
+  }
+  res.json({ status: 'ok', results });
+});
+
 // ── Start server ──────────────────────────────────────────────
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

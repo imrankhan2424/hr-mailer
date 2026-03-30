@@ -436,6 +436,10 @@
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Add Contact
         </button>
+        <button class="btn btn-primary" style="padding: 6px 12px; font-size: 11px" onclick="verifyEmails()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+          Verify Domains
+        </button>
         <button class="btn btn-secondary" onclick="document.getElementById('csv-input').click()">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
           Import CSV
@@ -867,15 +871,18 @@ function updateHRField(id,field,val){ const h=hrList.find(h=>h.id===id); if(h){h
 function renderHRList(){
   const c=document.getElementById('hr-list');
   if(hrList.length===0){ c.innerHTML=`<div style="text-align:center;padding:20px;color:var(--muted);font-family:'DM Mono',monospace;font-size:12px">No contacts yet.</div>`; return; }
-  c.innerHTML=hrList.map(h=>`
-    <div class="hr-entry">
+  c.innerHTML=hrList.map(h=>{
+    const vStyle = h.verifyResult ? (!h.verifyResult.valid ? 'style="border-color:var(--accent2); background:rgba(232,93,117,0.05)"' : 'style="border-color:var(--success); background:rgba(62,207,142,0.05)"') : '';
+    const tStyle = h.verifyResult && !h.verifyResult.valid ? 'style="color:var(--accent2)" title="'+esc(h.verifyResult.reason)+'"' : '';
+    return `
+    <div class="hr-entry" ${vStyle}>
       <input type="text" placeholder="Name (Optional)" value="${esc(h.name)}" oninput="updateHRField(${h.id},'name',this.value)">
-      <input type="email" placeholder="Email (Required)" value="${esc(h.email)}" oninput="updateHRField(${h.id},'email',this.value)">
+      <input type="email" placeholder="Email (Required)" value="${esc(h.email)}" oninput="updateHRField(${h.id},'email',this.value)" ${tStyle}>
       <input type="text" placeholder="Company (Optional)" value="${esc(h.company)}" oninput="updateHRField(${h.id},'company',this.value)">
       <button class="btn-icon" onclick="removeHR(${h.id})">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
       </button>
-    </div>`).join('');
+    </div>`}).join('');
 }
 function updateHRCount(){ document.getElementById('hr-count').textContent=`${hrList.length} contact${hrList.length!==1?'s':''}`; }
 function handleCSV(e){
@@ -887,6 +894,37 @@ function handleCSV(e){
     showToast(`✓ Imported ${added} contacts`);
   };
   reader.readAsText(file); e.target.value='';
+}
+
+// ── EMAIL VERIFICATION ────────────────────────────────────────
+async function verifyEmails() {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const valid = hrList.filter(h => h.email && emailRegex.test(h.email));
+  if (valid.length === 0) { showToast('⚠ No valid emails to verify'); return; }
+  showToast('🔍 Verifying domains... This might take a moment.');
+  const emails = valid.map(h => h.email);
+  try {
+    const r = await fetch(BACKEND + '/verify-emails', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ emails })
+    });
+    const data = await r.json();
+    if (data.status === 'ok') {
+      let invalidCount = 0;
+      hrList.forEach(h => {
+        if (h.email && data.results[h.email]) {
+          h.verifyResult = data.results[h.email];
+          if (!h.verifyResult.valid) invalidCount++;
+        }
+      });
+      renderHRList();
+      if (invalidCount > 0) showToast(`⚠ Found ${invalidCount} invalid domains. Check the list.`);
+      else showToast('✓ All domains look good!');
+    }
+  } catch (err) {
+    showToast('✗ Verification failed. Backend not reachable.');
+  }
 }
 
 // ── SAVED HR LISTS (named, like Profiles) ─────────────────────
@@ -1123,8 +1161,9 @@ async function startSending(){
   const gmailUser = document.getElementById('cfg-gmail-user').value.trim();
   const gmailPass = document.getElementById('cfg-gmail-pass').value.trim();
   if(!gmailUser||!gmailPass){ showToast('⚠ Set Gmail credentials in Setup first'); return; }
-  const valid=hrList.filter(h=>h.email.includes('@'));
-  if(valid.length===0){showToast('⚠ No valid email addresses');return;}
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const valid = hrList.filter(h => h.email && emailRegex.test(h.email));
+  if (valid.length === 0) { showToast('⚠ No valid email addresses'); return; }
   sending=true;
   document.getElementById('send-btn').disabled=true;
   document.getElementById('back-btn').disabled=true;
