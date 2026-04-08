@@ -277,13 +277,32 @@
 
     <!-- Gmail Config — entered in UI, no .env needed -->
     <div class="card">
-      <div class="card-header">
+      <div class="card-header" style="margin-bottom:8px">
         <div class="card-title">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
           Gmail Configuration
         </div>
         <span class="badge badge-purple">Replaces .env file</span>
       </div>
+      
+      <!-- Saved Gmail Configs bar -->
+      <div id="gmail-profiles-section" style="margin-bottom:16px">
+        <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">
+          <span>SAVED GMAIL CONFIGS</span>
+          <button class="btn btn-secondary btn-sm" onclick="openSaveGmailModal()">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Save Config
+          </button>
+        </div>
+        <div class="profiles-bar" id="gmail-bar">
+          <span style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);font-style:italic">No saved configs yet</span>
+        </div>
+        <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--warn);margin-top:6px;font-style:italic">
+          * App Passwords are NEVER saved for your security.
+        </div>
+      </div>
+      <div class="divider"></div>
+
       <div class="info-row">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         <span>Your Gmail credentials are sent to your local backend only. To create an App Password: <strong>Google Account → Security → 2-Step Verification → App passwords</strong>.</span>
@@ -435,6 +454,10 @@
         <button class="btn btn-secondary" onclick="addHR()">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Add Contact
+        </button>
+        <button class="btn btn-secondary" onclick="openPasteEmailsModal()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+          Paste Emails
         </button>
         <button class="btn btn-primary" style="padding: 6px 12px; font-size: 11px" onclick="verifyEmails()">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
@@ -632,6 +655,41 @@
   </div>
 </div>
 
+<!-- Save Gmail Config Modal -->
+<div id="save-gmail-modal" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-title">💾 Save Gmail Config</div>
+    <div class="field">
+      <label>CONFIG NAME</label>
+      <input type="text" id="new-gmail-name" placeholder="e.g. Work Email" onkeydown="if(event.key==='Enter')confirmSaveGmail()">
+    </div>
+    <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--warn);margin-top:8px">
+      Note: For maximum security, your App Password will NOT be saved. You will need to enter it before sending emails.
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmSaveGmail()">Save Config</button>
+    </div>
+  </div>
+</div>
+
+<!-- Paste Emails Modal -->
+<div id="paste-emails-modal" class="modal-overlay hidden">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-title">📋 Paste Emails</div>
+    <div style="font-size:12px;font-family:'DM Mono',monospace;color:var(--muted);margin-bottom:12px">
+      Paste a comma-separated list of emails (or one per line) to instantly add them to your contacts:
+    </div>
+    <div class="field">
+      <textarea id="paste-emails-input" placeholder="e.g. hr@company.com, jobs@startup.io, tech@example.com" style="min-height:120px"></textarea>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmPasteEmails()">Import Emails</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
@@ -721,6 +779,8 @@ function closeModal() {
   document.getElementById('save-profile-modal').classList.add('hidden');
   document.getElementById('template-modal').classList.add('hidden');
   document.getElementById('save-hrlist-modal').classList.add('hidden');
+  document.getElementById('save-gmail-modal').classList.add('hidden');
+  document.getElementById('paste-emails-modal').classList.add('hidden');
 }
 function confirmSaveProfile() {
   const name = document.getElementById('new-profile-name').value.trim();
@@ -798,6 +858,63 @@ function renderProfilesBar(activeId = null) {
       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       ${esc(p.name)}
       <span class="del-profile" onclick="deleteProfile(${p.id},event)" title="Delete profile">×</span>
+    </div>`).join('');
+}
+
+// ── GMAIL CONFIG PROFILES ─────────────────────────────────────
+function getGmailConfigs() { try { return JSON.parse(localStorage.getItem('hrm-gmail-configs') || '[]'); } catch(e) { return []; } }
+function saveGmailConfigs(list) { localStorage.setItem('hrm-gmail-configs', JSON.stringify(list)); }
+
+function openSaveGmailModal() {
+  document.getElementById('new-gmail-name').value = '';
+  document.getElementById('save-gmail-modal').classList.remove('hidden');
+  setTimeout(() => document.getElementById('new-gmail-name').focus(), 50);
+}
+function confirmSaveGmail() {
+  const name = document.getElementById('new-gmail-name').value.trim();
+  if (!name) { showToast('⚠ Enter a config name'); return; }
+  const configs = getGmailConfigs();
+  const conf = {
+    id: Date.now(),
+    name,
+    gmailUser: document.getElementById('cfg-gmail-user').value,
+    senderName: document.getElementById('cfg-sender-name').value
+    // intentionally not saving password
+  };
+  configs.push(conf);
+  saveGmailConfigs(configs);
+  renderGmailBar();
+  closeModal();
+  showToast(`✓ Gmail Config "${name}" saved (without password)`);
+}
+function loadGmailConfig(id) {
+  const configs = getGmailConfigs();
+  const c = configs.find(x => x.id === id);
+  if (!c) return;
+  document.getElementById('cfg-gmail-user').value = c.gmailUser || '';
+  document.getElementById('cfg-sender-name').value = c.senderName || '';
+  renderGmailBar(id);
+  showToast(`✓ Loaded "${c.name}" (Please enter App Password)`);
+}
+function deleteGmailConfig(id, e) {
+  e.stopPropagation();
+  const configs = getGmailConfigs().filter(p => p.id !== id);
+  saveGmailConfigs(configs);
+  renderGmailBar();
+  showToast('Gmail Config deleted');
+}
+function renderGmailBar(activeId = null) {
+  const bar = document.getElementById('gmail-bar');
+  const configs = getGmailConfigs();
+  if (configs.length === 0) {
+    bar.innerHTML = '<span style="font-size:11px;font-family:\'DM Mono\',monospace;color:var(--muted);font-style:italic">No saved configs yet</span>';
+    return;
+  }
+  bar.innerHTML = configs.map(c => `
+    <div class="profile-chip ${c.id === activeId ? 'active-profile':''}" onclick="loadGmailConfig(${c.id})">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+      ${esc(c.name)}
+      <span class="del-profile" onclick="deleteGmailConfig(${c.id},event)" title="Delete config">×</span>
     </div>`).join('');
 }
 
@@ -925,6 +1042,38 @@ async function verifyEmails() {
   } catch (err) {
     showToast('✗ Verification failed. Backend not reachable.');
   }
+}
+
+// ── PASTE EMAILS ──────────────────────────────────────────────
+function openPasteEmailsModal() {
+  document.getElementById('paste-emails-input').value = '';
+  document.getElementById('paste-emails-modal').classList.remove('hidden');
+  setTimeout(() => document.getElementById('paste-emails-input').focus(), 50);
+}
+function confirmPasteEmails() {
+  const text = document.getElementById('paste-emails-input').value;
+  const emails = text.split(/[\n,;]+/).map(e => e.trim()).filter(e => e.includes('@'));
+  
+  if (emails.length === 0) { showToast('⚠ No valid emails found'); return; }
+  
+  let added = 0;
+  emails.forEach(email => {
+    if (!hrList.some(h => h.email.toLowerCase() === email.toLowerCase())) {
+      const id = Date.now() + Math.random();
+      hrList.push({ id, name: '', email: email, company: '' });
+      added++;
+    }
+  });
+  
+  if (added > 0) {
+    renderHRList();
+    updatePreviewSelect();
+    updateHRCount();
+    showToast(`✓ Imported ${added} new emails`);
+  } else {
+    showToast(`ℹ All emails provided were already in your list`);
+  }
+  closeModal();
 }
 
 // ── SAVED HR LISTS (named, like Profiles) ─────────────────────
@@ -1224,6 +1373,7 @@ function showToast(msg){ const t=document.getElementById('toast'); t.textContent
 window.onload = async () => {
   initTheme();
   checkBackend();
+  renderGmailBar();
   renderProfilesBar();
   renderSidebarChips();
 
