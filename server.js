@@ -42,6 +42,7 @@ let runtimeConfig = {
 // ── Data files ────────────────────────────────────────────────
 const PROFILES_FILE = path.join(__dirname, 'profiles.json');
 const HRLIST_FILE   = path.join(__dirname, 'hrlist.json');
+const TEMPLATES_FILE = path.join(__dirname, 'templates.json');
 
 function loadJSON(filepath) {
   try { return JSON.parse(fs.readFileSync(filepath, 'utf8')); }
@@ -85,7 +86,7 @@ app.post('/send', async (req, res) => {
   try {
     const mailOptions = {
       from: `"${runtimeConfig.senderName}" <${runtimeConfig.gmailUser}>`,
-      to, subject, text: body
+      to, subject, text: body, html: body
     };
     // Attach resume if provided
     if (attachmentPath) {
@@ -166,6 +167,30 @@ app.delete('/profiles/:id', (req, res) => {
   const id = parseInt(req.params.id);
   const list = loadJSON(PROFILES_FILE).filter(p => p.id !== id);
   saveJSON(PROFILES_FILE, list);
+  res.json({ status: 'ok' });
+});
+
+// ── Templates CRUD ────────────────────────────────────────────
+app.get('/templates', (req, res) => {
+  res.json(loadJSON(TEMPLATES_FILE));
+});
+
+app.post('/templates', (req, res) => {
+  const template = req.body;
+  if (!template || !template.id) return res.status(400).json({ status: 'error', message: 'Invalid template' });
+  const list = loadJSON(TEMPLATES_FILE);
+  const existing = list.findIndex(p => p.id === template.id);
+  if (existing >= 0) list[existing] = template;
+  else list.push(template);
+  saveJSON(TEMPLATES_FILE, list);
+  console.log(`✓ Template saved: ${template.name}`);
+  res.json({ status: 'ok' });
+});
+
+app.delete('/templates/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  const list = loadJSON(TEMPLATES_FILE).filter(p => p.id !== id);
+  saveJSON(TEMPLATES_FILE, list);
   res.json({ status: 'ok' });
 });
 
