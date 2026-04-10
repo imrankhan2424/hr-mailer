@@ -1,53 +1,51 @@
 # HR Mailer 📧
 
-A streamlined tool designed to help job applicants manage their profiles and efficiently send tailored emails to HR departments. Built with Node.js, Express, and Nodemailer.
+A high-performance, persistent tool for managing job applications and sending personalized emails to HR departments. Built with a focus on data stability and a premium user experience.
 
-## ✨ Features
-- **Profile Management**: Create and manage multiple applicant profiles.
-- **HR Contact Lists**: Group and manage HR contacts efficiently.
-- **Direct Resume Uploads**: Support for `.pdf`, `.doc`, `.docx`, `.txt`, and `.rtf` files (up to 10MB).
-- **Email Automation**: Send personalized emails via Gmail with automatic resume attachments.
-- **Modern UI**: A clean, single-page interface to interact with your data.
+## ✨ Latest Enhancements
+- **Dynamic Data Persistence**: Automatically saves every input and modification to `localStorage` and syncs with the local JSON backend. No work is lost on page refreshes or session restarts.
+- **Rich Text Template Editor**: Compose beautiful, formatted emails with a Gmail-like editor and instant variable substitution.
+- **Template Management**: Save, delete, and reset templates. Independant template storage from app profiles.
+- **Improved Navigation**: Navigation buttons are now at the top of each step for faster workflow.
+- **UI Consistency**: Premium dark/light themes with centered, bounded layouts and a complete icon set.
+- **Master Contact List**: Deduplicated contact management across all your saved HR lists.
 
-## 🛠️ Built With
+## 🛠️ Tech Stack
 - **Backend**: Node.js, Express
-- **Email Services**: Nodemailer (configured for Gmail)
-- **File System**: Multer for handling file uploads
-- **Frontend**: HTML5, Vanilla JavaScript, CSS3
+- **Email**: Nodemailer (optimized for Gmail App Passwords)
+- **Data**: Multer (file handling), localized JSON storage
+- **Frontend**: Vanilla JS, CSS3, Syne Typography
 
-## 🚀 Getting Started
+## 🚀 Quick Start
 
 ### 1. Prerequisites
-- Node.js installed on your machine.
-- A Gmail account (you may need to use an "App Password" if 2FA is enabled).
+- Node.js (Latest LTS recommended)
+- Gmail account with an **App Password** (Required for secure sending)
 
-### 2. Installation
-Clone this repository and install dependencies:
+### 2. Setup
 ```bash
 git clone https://github.com/imrankhan2424/hr-mailer.git
 cd hr-mailer
 npm install
 ```
 
-### 3. Run the App
-Start the backend server:
+### 3. Execution
+Start the persistent backend server:
 ```bash
 node server.js
 ```
-The server will run on `http://localhost:3000`.
+Then open `index.html` in your browser.
 
 ### 4. Configuration
-Once the server is running, open `index.html` in your browser and use the **Setup** tab to configure your Gmail credentials and sender name.
+Use the **Setup** step to enter your Gmail address and App Password. These settings are persisted locally for your convenience but remain secure within your environment.
 
-## 📁 Repository Structure
-- `server.js`: The central Express server handling all API requests.
-- `index.html`: The interactive frontend.
-- `uploads/`: Local storage for uploaded resumes.
-- `hrlist.json`: Database for HR contact lists.
-- `profiles.json`: Database for applicant profiles.
-
-## 🤝 Contributing
-Contributions are welcome! Please feel free to submit a Pull Request.
+## 📁 Project Structure
+- `server.js`: Persistent API layer.
+- `index.html`: Modern, single-page application frontend.
+- `hrlist.json`: Contact database.
+- `profiles.json`: Saved applicant profiles.
+- `templates.json`: Custom email templates.
+- `uploads/`: Repository for uploaded resumes.
 
 ## 📝 License
 This project is licensed under the ISC License.
