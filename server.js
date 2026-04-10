@@ -4,6 +4,7 @@ const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 const multer = require('multer');
+const { simpleParser } = require('mailparser');
 
 const app = express();
 app.use(cors());
@@ -30,6 +31,12 @@ const upload = multer({
     const ext = path.extname(file.originalname).toLowerCase();
     cb(null, allowed.includes(ext));
   }
+});
+
+// ── Multer config for .eml uploads (memory, no disk) ──────────
+const emlUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 } // 5 MB — no fileFilter: multer 2.x handles cb(null,false) differently
 });
 
 // ── Runtime config (set via UI — no .env fallback) ────────────
@@ -119,6 +126,25 @@ app.post('/upload-resume', upload.single('resume'), (req, res) => {
     storedName: req.file.filename,
     size: req.file.size
   });
+});
+
+// ── Parse EML file ────────────────────────────────────────────
+app.post('/parse-eml', emlUpload.single('eml'), async (req, res) => {
+  if (!req.file) return res.status(400).json({ status: 'error', message: 'No file uploaded' });
+  const ext = path.extname(req.file.originalname).toLowerCase();
+  if (ext !== '.eml') return res.status(400).json({ status: 'error', message: 'Only .eml files are supported' });
+  try {
+    const parsed = await simpleParser(req.file.buffer);
+    res.json({
+      status: 'ok',
+      subject: parsed.subject || '',
+      html: parsed.html || (parsed.text ? `<pre style="font-family:inherit;white-space:pre-wrap">${parsed.text}</pre>` : ''),
+      text: parsed.text || ''
+    });
+  } catch(err) {
+    console.error('EML parse error:', err.message);
+    res.status(500).json({ status: 'error', message: 'Failed to parse .eml file: ' + err.message });
+  }
 });
 
 // ── HR List CRUD ──────────────────────────────────────────────

@@ -250,6 +250,12 @@
   <!-- STEP 0 — SETUP (Gmail config + Profile) -->
   <!-- ════════════════════════════════════════════════ -->
   <div id="step0">
+    <div class="flex gap-2" style="justify-content:flex-end;margin-bottom:16px">
+      <button class="btn btn-primary" onclick="goToStep(1)">
+        Next: HR Contacts
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+      </button>
+    </div>
 
     <!-- Backend status -->
     <div class="card">
@@ -405,19 +411,17 @@
         Add Custom Variable
       </button>
     </div>
-
-    <div style="text-align:right">
-      <button class="btn btn-primary" onclick="goToStep(1)">
-        Next: HR Contacts
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-      </button>
-    </div>
   </div>
 
   <!-- ════════════════════════════════════════════════ -->
   <!-- STEP 1 — HR CONTACTS -->
   <!-- ════════════════════════════════════════════════ -->
   <div id="step1" class="hidden">
+    <div class="flex gap-2" style="justify-content:space-between;margin-bottom:16px">
+      <button class="btn btn-secondary" onclick="goToStep(0)">← Back</button>
+      <button class="btn btn-primary" onclick="goToStep(2)">Next: Compose &amp; Preview <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+    </div>
+
     <!-- Saved HR Lists bar -->
     <div class="card">
       <div class="card-header">
@@ -479,16 +483,16 @@
       </div>
       <div style="margin-top:9px;font-size:11px;font-family:'DM Mono',monospace;color:var(--muted)">CSV columns: <code>Name, Email, Company</code></div>
     </div>
-    <div class="flex gap-2" style="justify-content:space-between">
-      <button class="btn btn-secondary" onclick="goToStep(0)">← Back</button>
-      <button class="btn btn-primary" onclick="goToStep(2)">Next: Compose &amp; Preview <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
-    </div>
   </div>
 
   <!-- ════════════════════════════════════════════════ -->
   <!-- STEP 2 — COMPOSE + PREVIEW (single page) -->
   <!-- ════════════════════════════════════════════════ -->
   <div id="step2" class="hidden">
+    <div class="flex gap-2" style="justify-content:space-between;margin-bottom:16px">
+      <button class="btn btn-secondary" onclick="goToStep(1)">← Back</button>
+      <button class="btn btn-primary" onclick="goToStep(3)">Review &amp; Send <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+    </div>
 
     <div class="compose-layout">
       <!-- LEFT: compose -->
@@ -497,14 +501,25 @@
         <div class="card" style="margin-bottom:0">
           <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">
             <span>SAVED TEMPLATES</span>
-            <button class="btn btn-secondary btn-sm" onclick="openSaveTemplateDraftModal()">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              Save Current Template
-            </button>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-danger btn-sm" onclick="resetTemplate()" title="Reset to default template">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                Reset Default
+              </button>
+              <button class="btn btn-secondary btn-sm" onclick="document.getElementById('eml-input').click()">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                Import .eml
+              </button>
+              <button class="btn btn-secondary btn-sm" onclick="openSaveTemplateDraftModal()">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Save Template
+              </button>
+            </div>
           </div>
           <div class="profiles-bar" id="templates-bar" style="margin-bottom:0">
             <span style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);font-style:italic">No saved templates yet</span>
           </div>
+          <input type="file" id="eml-input" accept=".eml" class="hidden" onchange="handleEmlImport(event)">
         </div>
 
         <div class="card" style="margin-bottom:0">
@@ -586,20 +601,28 @@
         </div>
       </div>
     </div>
-
-    <div class="flex gap-2" style="justify-content:space-between;margin-top:16px">
-      <button class="btn btn-secondary" onclick="goToStep(1)">← Back</button>
-      <button class="btn btn-primary" onclick="goToStep(3)">Review &amp; Send <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
-    </div>
   </div>
 
   <!-- ════════════════════════════════════════════════ -->
   <!-- STEP 3 — SEND -->
   <!-- ════════════════════════════════════════════════ -->
   <div id="step3" class="hidden">
-    <div class="card">
+    <div class="flex gap-2" style="justify-content:space-between;margin-bottom:16px">
+      <button class="btn btn-secondary" id="back-btn" onclick="goToStep(2)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+        Back
+      </button>
+      <button class="btn btn-success" id="send-btn" onclick="startSending()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        Send All via Gmail
+      </button>
+    </div>
+
       <div class="card-header">
-        <div class="card-title">Send Queue</div>
+        <div class="card-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/></svg>
+          Send Queue
+        </div>
         <span class="badge badge-purple" id="queue-badge"></span>
       </div>
       <div id="queue-preview" style="margin-bottom:13px"></div>
@@ -610,13 +633,6 @@
         <div class="stat-box"><div class="stat-num" id="stat-failed" style="color:var(--accent2)">0</div><div class="stat-label">Failed</div></div>
         <div class="stat-box"><div class="stat-num" id="stat-total" style="color:var(--accent)">0</div><div class="stat-label">Total</div></div>
       </div>
-    </div>
-    <div class="flex gap-2" style="justify-content:space-between">
-      <button class="btn btn-secondary" id="back-btn" onclick="goToStep(2)">← Back</button>
-      <button class="btn btn-success" id="send-btn" onclick="startSending()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-        Send All via Gmail
-      </button>
     </div>
   </div>
 
@@ -954,10 +970,38 @@ function renderGmailBar(activeId = null) {
       ${esc(c.name)}
       <span class="del-profile" onclick="deleteGmailConfig(${c.id},event)" title="Delete config">×</span>
     </div>`).join('');
+  saveActiveState();
 }
 
 // ── ACTIVE FIELD TRACKING ──────────────────────────────────────
 function setActiveField(f) { activeField = f; }
+
+// ── EML IMPORT ────────────────────────────────────────────────
+async function handleEmlImport(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  e.target.value = '';
+  showToast('📧 Parsing .eml file…');
+  try {
+    const formData = new FormData();
+    formData.append('eml', file);
+    const r = await fetch(BACKEND + '/parse-eml', { method: 'POST', body: formData });
+    const data = await r.json();
+    if (data.status === 'ok') {
+      if (data.subject) document.getElementById('subject').value = data.subject;
+      if (data.html)    document.getElementById('body').innerHTML = data.html;
+      // Auto-select first contact so live preview renders immediately
+      const sel = document.getElementById('preview-select');
+      if (sel && sel.options.length > 0) sel.selectedIndex = 0;
+      updatePreview();
+      showToast('✓ .eml imported — subject & body loaded!');
+    } else {
+      showToast('✗ ' + (data.message || 'Failed to parse .eml'));
+    }
+  } catch(err) {
+    showToast('✗ Backend not reachable — is node server.js running?');
+  }
+}
 
 // ── EMAIL TEMPLATES ───────────────────────────────────────────
 function getSavedTemplates() { try { return JSON.parse(localStorage.getItem('hrm-templates') || '[]'); } catch(e) { return []; } }
@@ -1008,6 +1052,22 @@ function deleteTemplate(id, e) {
   renderTemplatesBar();
   showToast('Template deleted');
 }
+function resetTemplate() {
+  if (confirm('Are you sure you want to reset the current subject and body to the default template?')) {
+    document.getElementById('subject').value = 'Application for {{position}} \u2014 {{your_name}}';
+    document.getElementById('body').innerHTML = 
+`Dear {{hr_name}},<br><br>
+I am writing to express my strong interest in joining {{company}} as a {{position}}.<br><br>
+I am a dedicated Software Testing Professional with a passion for ensuring software quality and delivering flawless user experiences. My expertise spans manual and automated testing, API testing, performance analysis, and detailed defect management. I pride myself on identifying critical issues early in the development lifecycle to help teams launch stable and reliable products.<br><br>
+Please find my resume attached detailing my technical skills and past projects. I would greatly appreciate the opportunity to discuss how I can contribute to the QA and testing efforts at {{company}}.<br><br>
+Thank you for your time and consideration.<br><br>
+Best regards,<br>
+{{your_name}}<br>
+{{your_email}}`;
+    updatePreview();
+    showToast('Template reset to default');
+  }
+}
 function renderTemplatesBar(activeId = null) {
   const bar = document.getElementById('templates-bar');
   if (!bar) return;
@@ -1036,7 +1096,7 @@ function getBuiltinMap() {
     portfolio:  document.getElementById('cfg-portfolio')?.value|| '',
   };
 }
-function syncBuiltinVars() { renderSidebarChips(); updatePreview(); }
+function syncBuiltinVars() { renderSidebarChips(); updatePreview(); saveActiveState(); }
 
 // ── CUSTOM VARS ───────────────────────────────────────────────
 function addCustomVar(data={}) {
@@ -1044,8 +1104,8 @@ function addCustomVar(data={}) {
   customVars.push({id, key:data.key||'', value:data.value||''});
   renderCustomVars(); renderSidebarChips(); updateCustomVarCount();
 }
-function removeCustomVar(id) { customVars=customVars.filter(v=>v.id!==id); renderCustomVars(); renderSidebarChips(); updateCustomVarCount(); updatePreview(); }
-function updateCustomVar(id,field,val) { const v=customVars.find(v=>v.id===id); if(!v)return; v[field]=val; renderSidebarChips(); updatePreview(); }
+function removeCustomVar(id) { customVars=customVars.filter(v=>v.id!==id); renderCustomVars(); renderSidebarChips(); updateCustomVarCount(); updatePreview(); saveActiveState(); }
+function updateCustomVar(id,field,val) { const v=customVars.find(v=>v.id===id); if(!v)return; v[field]=val; renderSidebarChips(); updatePreview(); saveActiveState(); }
 function renderCustomVars() {
   const c=document.getElementById('custom-vars-list');
   if(customVars.length===0){ c.innerHTML=`<div style="text-align:center;padding:14px;color:var(--muted);font-family:'DM Mono',monospace;font-size:12px">No custom variables yet.</div>`; return; }
@@ -1096,10 +1156,57 @@ function execCmd(command, value = null) {
   updatePreview();
 }
 
+function saveActiveState() {
+  const state = {
+    gmailUser: document.getElementById('cfg-gmail-user')?.value || '',
+    senderName: document.getElementById('cfg-sender-name')?.value || '',
+    name: document.getElementById('cfg-name')?.value || '',
+    email: document.getElementById('cfg-email')?.value || '',
+    role: document.getElementById('cfg-role')?.value || '',
+    phone: document.getElementById('cfg-phone')?.value || '',
+    linkedin: document.getElementById('cfg-linkedin')?.value || '',
+    portfolio: document.getElementById('cfg-portfolio')?.value || '',
+    subject: document.getElementById('subject')?.value || '',
+    body: document.getElementById('body')?.innerHTML || '',
+    customVars,
+    hrList
+  };
+  localStorage.setItem('hrm-active-state', JSON.stringify(state));
+}
+function loadActiveState() {
+  try {
+    const saved = localStorage.getItem('hrm-active-state');
+    if (!saved) return;
+    const state = JSON.parse(saved);
+    if (state.gmailUser)  document.getElementById('cfg-gmail-user').value = state.gmailUser;
+    if (state.senderName) document.getElementById('cfg-sender-name').value = state.senderName;
+    if (state.name)       document.getElementById('cfg-name').value = state.name;
+    if (state.email)      document.getElementById('cfg-email').value = state.email;
+    if (state.role)       document.getElementById('cfg-role').value = state.role;
+    if (state.phone)      document.getElementById('cfg-phone').value = state.phone;
+    if (state.linkedin)   document.getElementById('cfg-linkedin').value = state.linkedin;
+    if (state.portfolio)  document.getElementById('cfg-portfolio').value = state.portfolio;
+    if (state.subject)    document.getElementById('subject').value = state.subject;
+    if (state.body)       document.getElementById('body').innerHTML = state.body;
+    if (state.customVars) { customVars = state.customVars; renderCustomVars(); updateCustomVarCount(); }
+    if (state.hrList)     { hrList = state.hrList; renderHRList(); updatePreviewSelect(); updateHRCount(); }
+    syncBuiltinVars();
+  } catch(e) { console.error('Failed to load state', e); }
+}
+
 // ── HR LIST ───────────────────────────────────────────────────
-function addHR(data={}){ const id=Date.now()+Math.random(); hrList.push({id,name:data.name||'',email:data.email||'',company:data.company||''}); renderHRList(); updatePreviewSelect(); updateHRCount(); }
-function removeHR(id){ hrList=hrList.filter(h=>h.id!==id); renderHRList(); updatePreviewSelect(); updateHRCount(); }
-function updateHRField(id,field,val){ const h=hrList.find(h=>h.id===id); if(h){h[field]=val; updatePreviewSelect(); updatePreview();} }
+function isDuplicateEmail(email) {
+  return !!email && hrList.some(h => h.email.toLowerCase() === email.trim().toLowerCase());
+}
+function addHR(data={}) {
+  if (data.email && isDuplicateEmail(data.email)) return; // skip duplicates
+  const id = Date.now() + Math.random();
+  hrList.push({ id, name: data.name||'', email: data.email||'', company: data.company||'' });
+  renderHRList(); updatePreviewSelect(); updateHRCount();
+  saveActiveState();
+}
+function removeHR(id){ hrList=hrList.filter(h=>h.id!==id); renderHRList(); updatePreviewSelect(); updateHRCount(); saveActiveState(); }
+function updateHRField(id,field,val){ const h=hrList.find(h=>h.id===id); if(h){h[field]=val; updatePreviewSelect(); updatePreview(); saveActiveState();} }
 function renderHRList(){
   const c=document.getElementById('hr-list');
   if(hrList.length===0){ c.innerHTML=`<div style="text-align:center;padding:20px;color:var(--muted);font-family:'DM Mono',monospace;font-size:12px">No contacts yet.</div>`; return; }
@@ -1121,9 +1228,18 @@ function handleCSV(e){
   const file=e.target.files[0]; if(!file)return;
   const reader=new FileReader();
   reader.onload=ev=>{
-    const lines=ev.target.result.trim().split('\n'); let added=0;
-    lines.forEach((line,i)=>{ if(i===0&&line.toLowerCase().includes('name'))return; const cols=line.split(',').map(c=>c.trim().replace(/^"|"$/g,'')); if(cols.length>=2){addHR({name:cols[0],email:cols[1],company:cols[2]||''});added++;} });
-    showToast(`✓ Imported ${added} contacts`);
+    const lines=ev.target.result.trim().split('\n'); let added=0, skipped=0;
+    lines.forEach((line,i)=>{
+      if(i===0&&line.toLowerCase().includes('name'))return;
+      const cols=line.split(',').map(c=>c.trim().replace(/^"|"$/g,''));
+      if(cols.length>=2){
+        const email = cols[1];
+        if(isDuplicateEmail(email)){ skipped++; return; }
+        addHR({name:cols[0],email,company:cols[2]||''}); added++;
+      }
+    });
+    const msg = skipped > 0 ? `✓ Imported ${added} contacts, skipped ${skipped} duplicates` : `✓ Imported ${added} contacts`;
+    showToast(msg);
   };
   reader.readAsText(file); e.target.value='';
 }
@@ -1180,14 +1296,15 @@ function confirmPasteEmails() {
     }
   });
   
-  if (added > 0) {
-    renderHRList();
-    updatePreviewSelect();
-    updateHRCount();
-    showToast(`✓ Imported ${added} new emails`);
-  } else {
-    showToast(`ℹ All emails provided were already in your list`);
-  }
+    if (added > 0) {
+      renderHRList();
+      updatePreviewSelect();
+      updateHRCount();
+      saveActiveState();
+      showToast(`✓ Imported ${added} new emails`);
+    } else {
+      showToast(`ℹ All emails provided were already in your list`);
+    }
   closeModal();
 }
 
@@ -1240,6 +1357,7 @@ function loadSavedHRList(id) {
   document.getElementById('hr-list').innerHTML = '';
   (list.contacts || []).forEach(h => addHR({ name: h.name, email: h.email, company: h.company }));
   renderHRListBar(id);
+  saveActiveState();
   showToast(`✓ Loaded "${list.name}" — ${(list.contacts || []).length} contacts`);
 }
 function deleteSavedHRList(id, e) {
@@ -1258,12 +1376,40 @@ function renderHRListBar(activeId = null) {
     bar.innerHTML = '<span style="font-size:11px;font-family:\'DM Mono\',monospace;color:var(--muted);font-style:italic">No saved HR lists yet</span>';
     return;
   }
-  bar.innerHTML = lists.map(l => `
+  // Count total unique emails across all lists (for Master chip)
+  const allEmails = new Set();
+  lists.forEach(l => (l.contacts||[]).forEach(c => { if(c.email) allEmails.add(c.email.toLowerCase()); }));
+  const masterChip = `
+    <div class="profile-chip${activeId === 'master' ? ' active-profile' : ''}" onclick="loadMasterHRList()" title="Load all contacts from every saved list (no duplicates)" style="border-color:var(--accent);color:var(--accent)">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+      ★ Master List <span style="color:var(--muted);font-size:10px;margin-left:2px">(${allEmails.size})</span>
+    </div>`;
+  bar.innerHTML = masterChip + lists.map(l => `
     <div class="profile-chip ${l.id === activeId ? 'active-profile':''}" onclick="loadSavedHRList(${l.id})">
       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
       ${esc(l.name)} <span style="color:var(--muted);font-size:10px;margin-left:2px">(${(l.contacts || []).length})</span>
       <span class="del-profile" onclick="deleteSavedHRList(${l.id},event)" title="Delete list">×</span>
     </div>`).join('');
+}
+function loadMasterHRList() {
+  const lists = getSavedHRLists();
+  if (lists.length === 0) { showToast('⚠ No saved HR lists to merge'); return; }
+  const seen = new Set();
+  hrList = [];
+  document.getElementById('hr-list').innerHTML = '';
+  lists.forEach(l => {
+    (l.contacts || []).forEach(h => {
+      const key = (h.email || '').toLowerCase();
+      if (key && seen.has(key)) return;
+      if (key) seen.add(key);
+      const id = Date.now() + Math.random();
+      hrList.push({ id, name: h.name||'', email: h.email||'', company: h.company||'' });
+    });
+  });
+  renderHRList(); updatePreviewSelect(); updateHRCount();
+  renderHRListBar('master');
+  saveActiveState();
+  showToast(`✓ Master List loaded — ${hrList.length} unique contacts from ${lists.length} lists`);
 }
 
 // ── EXPORT CSV ────────────────────────────────────────────────
@@ -1386,6 +1532,7 @@ function updatePreviewSelect(){
   if(cur)sel.value=cur;
 }
 function updatePreview(){
+  saveActiveState();
   const sel=document.getElementById('preview-select'); if(!sel)return;
   const hr=hrList[parseInt(sel.value)];
   const subject=document.getElementById('subject')?.value||'';
@@ -1492,16 +1639,22 @@ window.onload = async () => {
   renderProfilesBar();
   renderSidebarChips();
 
-  // Load saved HR lists from backend to sync with localStorage
+  // Sync all data from backend
   try {
-    const r = await fetch(BACKEND + '/hrlist');
-    const backendLists = await r.json();
-    if (Array.isArray(backendLists) && backendLists.length > 0) {
-      persistSavedHRLists(backendLists);
-    }
-  } catch(e) {}
+    const [h, p, t] = await Promise.all([
+      fetch(BACKEND + '/hrlist').then(r => r.json()),
+      fetch(BACKEND + '/profiles').then(r => r.json()),
+      fetch(BACKEND + '/templates').then(r => r.json())
+    ]);
+    if (Array.isArray(h) && h.length > 0) persistSavedHRLists(h);
+    if (Array.isArray(p) && p.length > 0) saveProfiles(p);
+    if (Array.isArray(t) && t.length > 0) saveTemplateStore(t);
+  } catch(e) { console.error('Sync failed', e); }
 
   renderHRListBar();
+  renderTemplatesBar();
+  renderProfilesBar();
+  loadActiveState();
   
   // Default contacts if none loaded removed per requirements
   updatePreviewSelect();
@@ -1511,8 +1664,10 @@ window.onload = async () => {
     document.getElementById('cfg-role').value = 'Senior Software Test Engineer';
   }
 
-  document.getElementById('subject').value = 'Application for {{position}} — {{your_name}}';
-  document.getElementById('body').innerHTML =
+  // Only set default subject/body if subject is empty (i.e. no profile/template was loaded)
+  if (!document.getElementById('subject').value) {
+    document.getElementById('subject').value = 'Application for {{position}} \u2014 {{your_name}}';
+    document.getElementById('body').innerHTML =
 `Dear {{hr_name}},<br><br>
 I am writing to express my strong interest in joining {{company}} as a {{position}}.<br><br>
 I am a dedicated Software Testing Professional with a passion for ensuring software quality and delivering flawless user experiences. My expertise spans manual and automated testing, API testing, performance analysis, and detailed defect management. I pride myself on identifying critical issues early in the development lifecycle to help teams launch stable and reliable products.<br><br>
@@ -1521,6 +1676,7 @@ Thank you for your time and consideration.<br><br>
 Best regards,<br>
 {{your_name}}<br>
 {{your_email}}`;
+  }
   updatePreview();
 };
 </script>
